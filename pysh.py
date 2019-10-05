@@ -65,12 +65,12 @@ def setupReadline():
 
 
 @contextmanager
-def newStdout(so=None):
+def newStdout(stdout=None):
     originalStdout = sys.stdout
-    so = so or StringIO()
-    sys.stdout = so
+    stdout = stdout or StringIO()
+    sys.stdout = stdout
     try:
-        yield so
+        yield stdout
     except Exception:
         raise
     finally:
@@ -95,6 +95,7 @@ class Pipeline:
 
     def __init__(self, local):
         self.stdin = None
+        self.lastStdin = None
         self.stdout = None
         self.incomplete = False
         self.text = ''
@@ -107,6 +108,7 @@ class Pipeline:
             local.setdefault(key, value)
 
     def run(self, command):
+        self.lastStdin = self.stdin
         self.lastResultIsList = False
         self._debug('Processing %r.' % (command,))
 
@@ -235,7 +237,7 @@ class Pipeline:
         if self.stdin is None:
             stdin = None
         elif isinstance(self.stdin, list):
-            stdin = '\n'.join(self.stdin) + '\n'
+            stdin = '\n'.join(map(str, self.stdin)) + '\n'
         else:
             stdin = str(self.stdin)
 
@@ -255,6 +257,9 @@ class Pipeline:
 
     def toggleDebug(self):
         self.debug = not self.debug
+
+    def undo(self):
+        self.stdin = self.lastStdin
 
     def _debug(self, *args, **kwargs):
         if self.debug:
@@ -305,6 +310,12 @@ def main():
                 text = input(prompt)
             else:
                 text = raw_input(prompt)
+        except KeyboardInterrupt:
+            print('^C', file=sys.stderr)
+            pl = Pipeline(local)
+            prompt = sys.ps1
+            exitOnControlD = True
+            continue
         except EOFError:
             print('^D', file=sys.stderr)
             if exitOnControlD:
@@ -324,6 +335,16 @@ def main():
                 if command == '%d':
                     pl.toggleDebug()
                     doPrint = False
+                if command == '%u':
+                    pl.undo()
+                elif command == '%r':
+                    if exists(rc):
+                        exec(open(rc).read(), local)
+                        print('Reloaded.', file=sys.stderr)
+                        doPrint = False
+                    else:
+                        print('pysh init file %r does not exist.' % rc,
+                              file=sys.stderr)
                 elif command.startswith('%cd '):
                     pl.cd(command.split(None, 1)[1])
                     doPrint = False
@@ -335,6 +356,16 @@ def main():
                         # error. Quit the pipeline (similar to set -o
                         # pipefail in bash) and reset ourselves.
                         print('Process error: %s' % e, file=sys.stderr)
+                        pl = Pipeline(local)
+                        prompt = sys.ps1
+                        break
+                    except KeyboardInterrupt:
+                        print('^C', file=sys.stderr)
+                        pl = Pipeline(local)
+                        prompt = sys.ps1
+                        break
+                    except Exception as e:
+                        print(e, file=sys.stderr)
                         pl = Pipeline(local)
                         prompt = sys.ps1
                         break

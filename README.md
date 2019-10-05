@@ -51,8 +51,10 @@ You can see you really do have full Python:
 9
 ```
 
-And you have the shell too:
+(The `[0]` in the above is needed because shell commands always return a
+list of strings.)
 
+And you have the shell too:
 
 ```sh
 >>> def triple(x):
@@ -90,10 +92,38 @@ Just enter control-D as you normally would to end input. The current
 pipeline value will then be printed (unless it has just been printed
 because you hit ENTER).  A new pipeline is immediately started.
 
+### Undo in a pipeline
+
+If you run a command that alters the pipeline content and you want to
+restore it to its former value, you can undo with `%u`.
+
+There is only a single undo at the moment. This can obviously be improved,
+and a redo command could be added.
+
+## Readline
+
+`pysh` uses the [GNU](https://www.gnu.org/)
+[readline](https://docs.python.org/3/library/readline.html) library
+to make it easy to edit and re-enter commands.
+
+The `pysh` history is stored in `~/.pysh_history`.
+
+## Startup file
+
+`pysh` will read and execute code in a `~/.pysh.py` file, if any. This is a
+good place to put convenience functions you write that you want readily
+accessible. See examples <a href="#functions">below</a>.
+
+Use the special `%r` (reload) command to re-read your startup file.
+
 ## Exiting pysh
 
-A control-D exits the current pipeline. A second control-D will exit `pysh`
-completely.
+In most shells, a control-D exits. But in `pysh` it terminates the current
+pipeline. If you immediately give a second control-D, `pysh`
+will exit completely.
+
+You can also just call the Python builtin function `quit()` or use
+`sys.exit()` (both of which can be given an `int` exit status).
 
 ## How commands are interpreted
 
@@ -150,12 +180,12 @@ special command called `%cd`:
 /tmp
 ```
 
-*Warning*: I don't really like this special command! `pysh` is 99.9% pure
-Python and doesn't need these kinds of hacks (which in this case actually
-break some infrequently used syntax, such as entering a multi-line value
-using Python's `%` operator if you happen to have a variable called `cd`
-defined). So I may remove it entirely.  But... changing directory is rather
-common, so I'm not sure.
+*Warning*: I don't really like these special commands! `pysh` is 99.9% pure
+Python and doesn't absolutely require these kinds of hacks (which in this
+case actually break some infrequently used syntax, such as entering a
+multi-line value using Python's `%` operator if you happen to have a
+variable called `cd` defined). So I may remove it entirely.
+But... changing directory is rather common, so I'm not sure.
 
 Importantly, changing directory does not affect the current pipeline value.
 So you can change directory in the middle of a pipeline:
@@ -202,3 +232,104 @@ To turn on debugging output, set `self.debug` to a true value:
 ```
 
 or run `self.toggleDebug`.
+
+
+<a id="functions"></a>
+## Functions
+
+Here are some functions I wrote to give a flavor of what you can do and how
+to do it.
+
+```python
+import sys
+from operator import itemgetter
+from collections import defaultdict
+
+from pprint import pprint
+
+
+def pp():
+    "Pretty print standard input"
+    pprint(sys.stdin)
+    return sys.stdin
+
+
+def sus(n=None, print_=True):
+    """Perform the shell equivalent of sort | uniq -c | sort -n -r
+
+    @param n: The C{int} maximum number of items to return.
+    @param print_: If C{True}, output is printed. Else a C{list} of
+        C{(count, word)} C{tuple}s is returned (thus becoming the value of
+        C{sys.stdin} that will be available to the next pipeline command)
+    """
+    lines = defaultdict(int)
+
+    for line in sys.stdin:
+        lines[line] += 1
+
+    it = enumerate(
+        sorted(lines.items(), key=itemgetter(1), reverse=True), start=1)
+
+    if print_:
+        for i, (line, count) in it:
+            print('%d %s' % (count, line))
+            if n is not None and i >= n:
+                break
+    else:
+        result = []
+        for i, (line, count) in it:
+            result.append((count, line))
+            if n is not None and i >= n:
+                break
+        return result
+
+
+def ll():
+    "Get the last line of a list of lines (shell output)."
+    return sys.stdin[-1]
+
+
+def fl():
+    "Get the first line of a list of lines (shell output)."
+    return sys.stdin[0]
+
+
+def push(*args):
+    "Treat sys.stdin as a stack (a list) and push args onto it."
+    if isinstance(sys.stdin, list):
+        sys.stdin.extend(args)
+        return sys.stdin
+    else:
+        return [sys.stdin] + list(args)
+
+
+def pop():
+    "Treating sys.stdin as a stack (a list), pop & print the top of the stack."
+    print(sys.stdin.pop(), file=sys.stderr)
+    return sys.stdin
+
+
+def clear():
+    "Treating sys.stdin as a stack (a list), clear the stack."
+    return []
+
+
+def apply(n=None):
+    """Treating sys.stdin as a stack (a list), pop a function from the top of
+       the stack and apply it to a given number of arguments"""
+    if sys.stdin:
+        if n is not None:
+            if len(sys.stdin) < n + 1:
+                print('Could not apply - not enough stack items',
+                      file=sys.stderr)
+            else:
+                func = sys.stdin.pop()
+                args = reversed(sys.stdin[-n:])
+        else:
+            func = sys.stdin.pop()
+            args = reversed(sys.stdin)
+        return func(*args)
+    else:
+        print('Empty stack!', file=sys.stderr)
+        return sys.stdin
+```
