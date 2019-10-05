@@ -410,8 +410,8 @@ shell is (really meaning its pipelines and the power you get from it
 falling back onto external programs in `$PATH` when it encounters a
 non-keyword).
 
-Derek said he thinks the shell really sucks.  He asked two really strong
-questions.
+Derek said he thinks the shell and having to use one in the first place
+really sucks.  He asked two questions, illustrating his strong objections:
 
 1. First, he asked why we have to program the shell in this archaic painful
    language when we use a completely different language to get our "real"
