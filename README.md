@@ -116,13 +116,14 @@ and a redo command could be added.
 it easy to edit and re-enter commands. The history is stored in
 `~/.pysh_history`.
 
-## Startup file
+<a id="start-up"></a>
+## Start-up file
 
-`pysh` will read and execute code in a `~/.pysh.py` file, if any. This is a
-good place to put convenience functions you write that you want readily
-accessible. See examples <a href="#functions">below</a>.
+`pysh` will initially read and execute code in a `~/.pysh.py` file, if
+any. This is a good place to put convenience functions you write that you
+want readily accessible. See examples <a href="#functions">below</a>.
 
-Use the special `%r` (reload) command to re-read your startup file.
+Use the special `%r` (reload) command to re-read your start-up file.
 
 ## Exiting pysh
 
@@ -299,7 +300,8 @@ or run `self.toggleDebug()`.
 ## Functions
 
 Here are some functions I wrote to give a flavor of what you can do and how
-to do it.
+to do it. These all live in my `~/.pysh.py` start-up file (described <a
+href="#start-up">above</a>).
 
 ```python
 import sys
