@@ -139,13 +139,13 @@ class Pipeline:
             self._debug('Could not eval: %s.' % e)
             return False, False
         else:
-            self._debug('Eval -> %r.' % (result,))
+            self._debug('Eval returned %r.' % (result,))
             self.text = ''
             if result is None:
                 stdoutValue = so.getvalue()
                 if stdoutValue:
                     result = stdoutValue
-                    self._debug('Eval printed -> %r.' % (stdoutValue,))
+                    self._debug('Eval printed %r.' % (stdoutValue,))
             elif isinstance(result, CompletedProcess):
                 if result.stdout:
                     doPrint = True
@@ -205,7 +205,7 @@ class Pipeline:
         if exception is None:
             stdoutValue = so.getvalue()
             if stdoutValue:
-                self._debug('Exec printed -> %r.' % (stdoutValue,))
+                self._debug('Exec printed %r.' % (stdoutValue,))
                 self.stdin = stdoutValue
                 doPrint = True
         else:

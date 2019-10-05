@@ -289,8 +289,8 @@ You can turn on debugging output using the special `%d` command, or set
 >>> self.debug = 1
 >>> 4
                     Processing '4'.
-                    Trying eval '4'
-                    Eval -> 4
+                    Trying eval '4'.
+                    Eval returned 4.
 4
 ```
 
