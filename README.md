@@ -29,7 +29,7 @@ total 16
 
 But in fact it's Python all the way down:
 
-```sh
+```python
 $ pysh.py
 >>> ls | for i in sys.stdin:
 ...   print(len(i))
@@ -38,12 +38,12 @@ $ pysh.py
 7
 ```
 
-In the further examples on this page, the invocation of `pysh.py` is
-omitted.
+In the further examples on this page, the initial invocation of `pysh.py`
+is omitted.
 
 You can see you really do have full Python:
 
-```sh
+```python
 >>> def triple(x):
 ...   return int(x) * 3
 ...
@@ -56,7 +56,7 @@ list of strings.)
 
 And you have the shell too:
 
-```sh
+```python
 >>> def triple(x):
 ...   return int(x) * 3
 ...
@@ -85,6 +85,11 @@ a convenience:
 >>> -6 | abs(_) | _ * 6
 36
 ```
+
+If you hit ENTER in the middle of a pipeline, the current value of
+`sys.stdin` is printed (but the pipeline is still intact).  The pipeline
+value is not shown in between running commands joined with the `|` pipe
+symbol.
 
 ### Exiting a pipeline
 
@@ -137,15 +142,67 @@ given to [exec](https://docs.python.org/3/library/functions.html#exec) to
 execute.  If a partial command (e.g., the beginning of a function
 definition or a dictionary or list etc.), a secondary prompt (`sys.ps2`) is
 printed.  If a command cannot be compiled or executed, execution is
-attempted via the shell using
+attempted via the shell (`/bin/sh`) using
 [subprocess](https://docs.python.org/3.7/library/subprocess.html). The
-current `sys.stdin` is given to the shell.  The output of the shell
-command, if any, is converted to a Python `list` of strings (though `pysh`
-initially prints it as a single string). The list of strings becomes the
-next `sys.stdin`. If the shell command produces no output, `sys.stdin` is
-set to `[]` for the next command (arguably a value of `None` could be used
-instead, but it's more consistent to have all shell commands return a list
-of strings, even if empty).
+current `sys.stdin` is provided to the shell on standard input.  The output
+of the shell command, if any, is converted to a Python `list` of strings
+(though `pysh` initially prints this as a single string). The list of
+strings becomes the next `sys.stdin`. If the shell command produces no
+output, `sys.stdin` is set to `[]` for the next command (a value of `None`
+could be used instead, but it's more consistent to have all shell commands
+return a list of strings, even if empty).
+
+If a command returns a value (or if `None` is returned but the command
+prints something) that value becomes the new pipeline value.
+
+```python
+>>> 4
+4
+>>> _
+4
+>>> [3, 6, 9]
+[3, 6, 9]
+>>> print('hello')
+hello
+>>> echo hello
+hello
+# Note that the echo command actually returns a list of strings, and that is
+# the value that sys.stdin is set to.  But, as mentioned above, when pysh
+# first prints the output from the shell command the lines are joined wth \n.
+>>> _
+['hello']
+>>> 4; 5; print('xyz')
+
+### Shortcoming
+
+Although the above works well almost all the time, it is not perfect. In
+particular it is possible that you enter a valid Python expression but that
+`eval` and `exec` cannot run it (e.g., `len(None)`). In that case the
+command is fed to the shell, which results in an error similar to
+
+```python
+>>> len(None)
+/bin/sh: 1: Syntax error: word unexpected (expecting ")")
+Process error: Command 'len(None)' returned non-zero exit status 2.
+None
+```
+
+You can turn on debugging (`%d`) to get some idea of what happened:
+
+```python
+>>> %d
+>>> len(None)
+                    Processing 'len(None)'.
+                    Trying eval 'len(None)'.
+                    Could not eval: object of type 'NoneType' has no len().
+                    Trying to compile 'len(None)'.
+                    Command compiled OK.
+                    Could not exec: object of type 'NoneType' has no len().
+/bin/sh: 1: Syntax error: word unexpected (expecting ")")
+Process error: Command 'len(None)' returned non-zero exit status 2.
+None
+```
+
 
 ## Changing directory
 
@@ -156,7 +213,7 @@ be a special "built-in" command in regular shells.
 
 In `pysh` you can change dir using regular Python:
 
-```sh
+```python
 >>> import os
 >>> os.chdir('/tmp')
 >>> pwd
@@ -165,7 +222,7 @@ In `pysh` you can change dir using regular Python:
 
 but that's a bit laborious.  So there's a `cd` function provided for you:
 
-```sh
+```python
 >>> cd('/tmp')
 >>> pwd
 /tmp
@@ -174,7 +231,7 @@ but that's a bit laborious.  So there's a `cd` function provided for you:
 To ease this, at the price of a litle ugliness, there's also a "built-in"
 special command called `%cd`:
 
-```sh
+```python
 >>> %cd /tmp
 >>> pwd
 /tmp
@@ -190,8 +247,7 @@ But... changing directory is rather common, so I'm not sure.
 Importantly, changing directory does not affect the current pipeline value.
 So you can change directory in the middle of a pipeline:
 
-```sh
-$ pysh.py
+```python
 >>> mkdir /tmp/a /tmp/b
 >>> cd('/tmp/a')
 >>> touch x y z
@@ -208,11 +264,11 @@ z
 I am file x
 ```
 
-## Changing prompt
+## Changing prompts
 
 Just set `sys.ps1` or `sys.ps2`:
 
-```sh
+```python
 >>> sys.ps1 = '$ '
 $ 3 + 4
 7
@@ -220,9 +276,10 @@ $ 3 + 4
 
 ## Debugging
 
-To turn on debugging output, set `self.debug` to a true value:
+You can turn on debugging output using the special `%d` command, or set
+`self.debug` to a true value:
 
-```sh
+```python
 >>> self.debug = 1
 >>> 4
                     Processing '4'.

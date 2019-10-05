@@ -130,22 +130,22 @@ class Pipeline:
 
         doPrint = True
 
-        self._debug('Trying eval %r' % (stripped,))
+        self._debug('Trying eval %r.' % (stripped,))
         try:
             with newStdout() as so, newStdin(self.stdin):
                 self.local['_'] = self.stdin
                 result = eval(stripped, self.local)
         except Exception as e:
-            self._debug('Could not eval (%s). Trying exec.' % e)
+            self._debug('Could not eval: %s.' % e)
             return False, False
         else:
-            self._debug('Eval -> %r' % (result,))
+            self._debug('Eval -> %r.' % (result,))
             self.text = ''
             if result is None:
                 stdoutValue = so.getvalue()
                 if stdoutValue:
                     result = stdoutValue
-                    self._debug('Eval printed -> %r' % (stdoutValue,))
+                    self._debug('Eval printed -> %r.' % (stdoutValue,))
             elif isinstance(result, CompletedProcess):
                 if result.stdout:
                     doPrint = True
@@ -173,19 +173,19 @@ class Pipeline:
         else:
             fullCommand = command
 
-        self._debug('Trying compile %r' % (fullCommand,))
+        self._debug('Trying to compile %r.' % (fullCommand,))
 
         exception = None
 
         try:
             codeobj = compile_command(fullCommand)
         except (OverflowError, SyntaxError, ValueError) as e:
-            self._debug('%s: %s' % (e.__class__.__name__, e))
+            self._debug('%s: %s.' % (e.__class__.__name__, e))
             self.text = ''
             self.incomplete = False
             exception = e
         else:
-            self._debug('Compiled OK')
+            self._debug('Command compiled OK.')
             so = StringIO()
             if codeobj:
                 self.local['_'] = self.stdin
@@ -193,18 +193,19 @@ class Pipeline:
                     try:
                         exec(codeobj, self.local)
                     except Exception as e:
+                        self._debug('Could not exec: %s.' % e)
                         exception = e
                 self.text = ''
                 self.incomplete = False
             else:
-                self._debug('Incomplete command')
+                self._debug('Incomplete command.')
                 self.incomplete = True
                 self.text = fullCommand
 
         if exception is None:
             stdoutValue = so.getvalue()
             if stdoutValue:
-                self._debug('Exec printed -> %r' % (stdoutValue,))
+                self._debug('Exec printed -> %r.' % (stdoutValue,))
                 self.stdin = stdoutValue
                 doPrint = True
         else:
@@ -335,7 +336,7 @@ def main():
                 if command == '%d':
                     pl.toggleDebug()
                     doPrint = False
-                if command == '%u':
+                elif command == '%u':
                     pl.undo()
                 elif command == '%r':
                     if exists(rc):
