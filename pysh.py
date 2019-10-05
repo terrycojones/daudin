@@ -2,14 +2,14 @@
 
 from __future__ import print_function
 
+import os
+import sys
+import six
+import readline
 from code import compile_command
 from io import StringIO, TextIOWrapper
-import sys
 from contextlib import contextmanager
-import readline
-import os
 from os.path import exists, join, expanduser
-import six
 from subprocess import CalledProcessError
 
 if six.PY3:
