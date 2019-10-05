@@ -423,7 +423,8 @@ really sucks.  He asked two questions, illustrating his strong objections:
    functions inside-out (innermost is executed first) in a typical
    language, or b) use prefix syntax and nested inside-out functions as in
    [Lisp](https://en.wikipedia.org/wiki/Lisp_(programming_language)), or c)
-   push all your arguments onto a stack and then use postix, as in a
+   perhaps worst of all, push all your arguments onto a stack and then
+   use postix, as in a
    [Reverse Polish Notation](https://en.wikipedia.org/wiki/Reverse_Polish_notation)
    (RPN) calculator or other stack-based language.
 
