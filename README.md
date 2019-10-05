@@ -112,10 +112,9 @@ and a redo command could be added.
 ## Readline
 
 `pysh` uses the [GNU](https://www.gnu.org/)
-[readline](https://docs.python.org/3/library/readline.html) library
-to make it easy to edit and re-enter commands.
-
-The `pysh` history is stored in `~/.pysh_history`.
+[readline](https://docs.python.org/3/library/readline.html) library to make
+it easy to edit and re-enter commands. The history is stored in
+`~/.pysh_history`.
 
 ## Startup file
 
@@ -144,17 +143,17 @@ fails,
 is used to try to compile the command. If a full command is found, it is
 given to [exec](https://docs.python.org/3/library/functions.html#exec) to
 execute.  If a partial command (e.g., the beginning of a function
-definition or a dictionary or list etc.), a secondary prompt (`sys.ps2`) is
-printed.  If a command cannot be compiled or executed, execution is
-attempted via the shell (`/bin/sh`) using
+definition or a dictionary or list etc.) is found, a secondary prompt
+(`sys.ps2`) is printed.  If a command cannot be compiled or executed,
+execution is attempted via the shell (`/bin/sh`) using
 [subprocess](https://docs.python.org/3.7/library/subprocess.html). The
 current `sys.stdin` is provided to the shell on standard input.  The output
 of the shell command, if any, is converted to a Python `list` of strings
-(though `pysh` initially prints this as a single string). The list of
-strings becomes the next `sys.stdin`. If the shell command produces no
-output, `sys.stdin` is set to `[]` for the next command (a value of `None`
-could be used instead, but it's more consistent to have all shell commands
-return a list of strings, even if empty).
+(though `pysh` initially prints this as a single string for the user). The
+list of strings becomes the next `sys.stdin`. If the shell command produces
+no output, `sys.stdin` is set to `[]` for the next command (a value of
+`None` could be used instead, but it's more consistent to have all shell
+commands return a list of strings, even if empty).
 
 If a command returns a value (or if `None` is returned but the command
 prints something) that value becomes the new pipeline value.
@@ -172,10 +171,10 @@ hello
 hello
 # Note that the echo command actually returns a list of strings, and that is
 # the value that sys.stdin is set to.  But, as mentioned above, when pysh
-# first prints the output from the shell command the lines are joined wth \n.
+# first prints the output from the shell command the lines are joined with \n.
 >>> _
 ['hello']
->>> 4; 5; print('xyz')
+```
 
 ### Shortcoming
 
@@ -191,7 +190,8 @@ Process error: Command 'len(None)' returned non-zero exit status 2.
 None
 ```
 
-You can turn on debugging (`%d`) to get some idea of what happened:
+You can turn on debugging (use the special `%d` command, described <a
+href="#debugging">below</a>) to get some idea of what happened:
 
 ```python
 >>> %d
@@ -278,6 +278,7 @@ $ 3 + 4
 7
 ```
 
+<a id="debugging"></s>
 ## Debugging
 
 You can turn on debugging output using the special `%d` command, or set
