@@ -164,7 +164,7 @@ So you can change directory in the middle of a pipeline:
 $ pysh.py
 >>> mkdir /tmp/a /tmp/b
 >>> cd('/tmp/a')
->>> touch x y y
+>>> touch x y z
 >>> ls
 x
 y
