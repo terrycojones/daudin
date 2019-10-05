@@ -480,3 +480,6 @@ shell `cd` commands over the years, including a client-server one :-)). The
 prompt could be a function. Many things could be done with history. Etc.
 
 Thanks for reading, and thanks Derek & Nelson.
+
+Terry Jones (@terrycojones)<br>
+terry@jon.es
