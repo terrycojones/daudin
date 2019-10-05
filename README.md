@@ -410,40 +410,49 @@ shell is (really meaning its pipelines and the power you get from it
 falling back onto external programs in `$PATH` when it encounters a
 non-keyword).
 
-Derek said he thinks the shell really sucks.  He made two strong points.
+Derek said he thinks the shell really sucks.  He asked two really strong
+questions.
 
 1. First, he asked why we have to program the shell in this archaic painful
-language when we use a completely different language to get our "real" work
-done. Why can't it all just be one language.
+   language when we use a completely different language to get our "real"
+   work done. Why can't it all just be one language?
 
-I told him how I love pipelines and how natural they are (unlike the way
-you need to nest functions in a regular language, or use prefix as in
-[Lisp](https://en.wikipedia.org/wiki/Lisp_(programming_language)), or
-postix as in
-[Reverse Polish Notation](https://en.wikipedia.org/wiki/Reverse_Polish_notation)
-(RPN).
+   I told him how I love pipelines and how natural they are. They are
+   completely unlike what we normally do as programmers and that we somehow
+   got used to. In "normal" programming you need to either a) nest
+   functions inside-out (innermost is executed first) in a typical
+   language, or b) use prefix syntax and nested inside-out functions as in
+   [Lisp](https://en.wikipedia.org/wiki/Lisp_(programming_language)), or c)
+   push all your arguments onto a stack and then use postix, as in a
+   [Reverse Polish Notation](https://en.wikipedia.org/wiki/Reverse_Polish_notation)
+   (RPN) calculator or other stack-based language.
 
-Unlike in those other environments, in a shell pipeline you just say what
-you want to get done in the natural order, you give arguments in the
-natural place, and the shell makes the data flow along the pipeline behind
-the scenes via hooking up standard input and output between successive
-commands.
+   Unlike in those other environments, in a shell pipeline you indicate
+   what you want to get done in the "natural" left-to-right order. You give
+   arguments in a natural place. The shell takes care of making the data
+   flow through the pipeline behind the scenes, hooking up standard input
+   and output between successive commands.
 
-I mentioned an experimental new shell to Derek,
-[nushell](http://www.jonathanturner.org/2019/08/introducing-nushell.html),
-that [Nelson Minar](https://twitter.com/nelson) had recently pointed me
-to. I told him how `nushell` lets structured data flow along the
-pipeline. He gave an outraged snort.
+   I mentioned an experimental new shell
+   ([nushell](http://www.jonathanturner.org/2019/08/introducing-nushell.html))
+   to Derek, that [Nelson Minar](https://twitter.com/nelson) had recently
+   pointed me to. I told Derek how `nushell` lets structured data flow
+   along the pipeline.
 
-2. Derek's second comment was: "but why structured data"? Why can't a
-number, a string, a list, an object, or a function, flow along the
-pipeline? He's a Lisp programmer, and he's never seen a reason to move to
-any other programming environment. You can understand why.
+2. He gave an outraged snort and asked his second deadly question: but why
+   structured data? Why can't a number, a string, a list, an object, a
+   function (or even "structured data"), flow along the pipeline? Derek is
+   a Lisp programmer, and has been for decades.  He's never seen a reason
+   to move to any other programming environment. If you know about Lisp and
+   its typical programming environment (not to mention the
+   [Lisp Machine](https://en.wikipedia.org/wiki/Lisp_machine)) you can
+   easily appreciate why.
 
 I recently wrote
 [a Python RPN calculator](https://github.com/terrycojones/rpnpy/) that lets
 you put anything onto the stack and operate on it, so I've been thinking
-about something like this, but in the context of a stack, not the shell.
+about very general and syntactically easy use of Python like this, but in
+the context of a stack, not the shell.
 
 With Derek's two provocative questions burning brightly in my mind, I
 started thinking about how to write a shell that was all Python, with the
