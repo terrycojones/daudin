@@ -33,7 +33,7 @@ total 16
 
 But in fact it's Python all the way down:
 
-```python
+```sh
 $ pysh.py
 >>> ls | for i in sys.stdin:
 ...   print(len(i))
