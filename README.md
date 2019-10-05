@@ -274,8 +274,8 @@ I am file x
 Just set `sys.ps1` or `sys.ps2`:
 
 ```python
->>> sys.ps1 = '$ '
-$ 3 + 4
+>>> sys.ps1 = '% '
+% 3 + 4
 7
 ```
 
@@ -475,6 +475,7 @@ proof of concept.
 I'm going to try using `pysh` for real and see what kinds of additional
 helper functions I end up adding and how things go in general.  It's easy
 to imagine some things, like a smart `cd` command (I've written quite a few
-shell `cd` commands over the years, including a client-server one :-)).
+shell `cd` commands over the years, including a client-server one :-)). The
+prompt could be a function. Many things could be done with history. Etc.
 
 Thanks for reading, and thanks Derek & Nelson.
