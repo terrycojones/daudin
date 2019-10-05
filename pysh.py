@@ -65,9 +65,9 @@ def setupReadline():
 
 
 @contextmanager
-def newStdout():
+def newStdout(so=None):
     originalStdout = sys.stdout
-    so = StringIO()
+    so = so or StringIO()
     sys.stdout = so
     try:
         yield so
@@ -145,14 +145,15 @@ class Pipeline:
                     result = stdoutValue
                     self._debug('Eval printed -> %r' % (stdoutValue,))
             elif isinstance(result, CompletedProcess):
-                doPrint = True
                 if result.stdout:
+                    doPrint = True
                     if result.stdout.endswith('\n'):
                         result.stdout = result.stdout[:-1]
                     result = result.stdout.split('\n')
                     self.lastResultIsList = True
                 else:
-                    result = None
+                    doPrint = False
+                    result = []
 
             if result is self.IGNORE:
                 doPrint = False
@@ -183,9 +184,10 @@ class Pipeline:
             exception = e
         else:
             self._debug('Compiled OK')
+            so = StringIO()
             if codeobj:
                 self.local['_'] = self.stdin
-                with newStdout() as so, newStdin(self.stdin):
+                with newStdout(so), newStdin(self.stdin):
                     try:
                         exec(codeobj, self.local)
                     except Exception as e:
@@ -206,13 +208,14 @@ class Pipeline:
         else:
             result = self.sh(fullCommand)
             if result.stdout:
+                doPrint = True
                 if result.stdout.endswith('\n'):
                     result.stdout = result.stdout[:-1]
                 self.stdin = result.stdout.split('\n')
                 self.lastResultIsList = True
             else:
-                self.stdin = None
-            doPrint = True
+                self.stdin = []
+                doPrint = False
 
         return doPrint
 
