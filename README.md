@@ -404,11 +404,11 @@ def apply(n=None):
 ## Background & thanks
 
 I wrote `pysh` on the evening of Oct 4, 2019 following a discussion about
-shells with
-[Derek Smith](https://www.zoo.cam.ac.uk/directory/derek-smith). He'd
-overheard me talking to a student. I was saying how awesome the shell is
-(really meaning its pipelines and the power you get from it falling back
-onto external programs in `$PATH` when it encounters a non-keyword).
+shells with [Derek Smith](https://www.zoo.cam.ac.uk/directory/derek-smith)
+after he overheard me talking to a student. I was saying how awesome the
+shell is (really meaning its pipelines and the power you get from it
+falling back onto external programs in `$PATH` when it encounters a
+non-keyword).
 
 Derek said he thinks the shell really sucks.  He made two strong points.
 
