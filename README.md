@@ -293,8 +293,7 @@ You can turn on debugging output using the special `%d` command, or set
 4
 ```
 
-or run `self.toggleDebug`.
-
+or run `self.toggleDebug()`.
 
 <a id="functions"></a>
 ## Functions
