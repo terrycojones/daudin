@@ -172,54 +172,47 @@ class Pipeline:
 
         self._debug('Trying compile %r' % (fullCommand,))
 
+        exception = None
+
         try:
             codeobj = compile_command(fullCommand)
-        except SyntaxError as e:
-            print('                    syntax error', e)
+        except (OverflowError, SyntaxError, ValueError) as e:
+            self._debug('%s: %s' % (e.__class__.__name__, e))
             self.text = ''
             self.incomplete = False
-        except (OverflowError, ValueError) as e:
-            print('                    OverflowError or ValueError', e)
-            self.text = ''
-            self.incomplete = False
+            exception = e
         else:
             self._debug('Compiled OK')
             if codeobj:
-                exception = False
                 self.local['_'] = self.stdin
                 with newStdout() as so, newStdin(self.stdin):
                     try:
                         exec(codeobj, self.local)
                     except Exception as e:
                         exception = e
-
-                # Non-exception code goes here so that stdout is
-                # restored in case we print anything.
-                if exception:
-                    if isinstance(exception, NameError):
-                        result = self.sh(fullCommand)
-                        if result.stdout:
-                            if result.stdout.endswith('\n'):
-                                result.stdout = result.stdout[:-1]
-                            self.stdin = result.stdout.split('\n')
-                            self.lastResultIsList = True
-                        else:
-                            self.stdin = None
-                        doPrint = True
-                    else:
-                        print(exception)
-                else:
-                    stdoutValue = so.getvalue()
-                    if stdoutValue:
-                        self._debug('Exec printed -> %r' % (stdoutValue,))
-                        self.stdin = stdoutValue
-                        doPrint = True
                 self.text = ''
                 self.incomplete = False
             else:
                 self._debug('Incomplete command')
                 self.incomplete = True
                 self.text = fullCommand
+
+        if exception is None:
+            stdoutValue = so.getvalue()
+            if stdoutValue:
+                self._debug('Exec printed -> %r' % (stdoutValue,))
+                self.stdin = stdoutValue
+                doPrint = True
+        else:
+            result = self.sh(fullCommand)
+            if result.stdout:
+                if result.stdout.endswith('\n'):
+                    result.stdout = result.stdout[:-1]
+                self.stdin = result.stdout.split('\n')
+                self.lastResultIsList = True
+            else:
+                self.stdin = None
+            doPrint = True
 
         return doPrint
 
@@ -256,6 +249,9 @@ class Pipeline:
     def cd(self, dest):
         os.chdir(dest)
         return self.IGNORE
+
+    def toggleDebug(self):
+        self.debug = not self.debug
 
     def _debug(self, *args, **kwargs):
         if self.debug:
@@ -296,8 +292,7 @@ def main():
         sys.ps2 = '... '
 
     prompt = sys.ps1
-    exitOnControlD = True
-    printOnControlD = True
+    exitOnControlD = printOnControlD = True
     pl = Pipeline(local)
 
     while True:
@@ -324,15 +319,18 @@ def main():
             exitOnControlD = False
             for command in text.split('|'):
                 if command == '%d':
-                    pl.debug()
+                    pl.toggleDebug()
                     doPrint = False
                 elif command.startswith('%cd '):
-                    os.chdir(command.split(None, 1)[1])
+                    pl.cd(command.split(None, 1)[1])
                     doPrint = False
                 else:
                     try:
                         complete, doPrint = pl.run(command)
                     except CalledProcessError as e:
+                        # A process in the middle of a pipeline gave an
+                        # error. Quit the pipeline (similar to set -o
+                        # pipefail in bash) and reset ourselves.
                         print('Process error: %s' % e, file=sys.stderr)
                         pl = Pipeline(local)
                         prompt = sys.ps1
