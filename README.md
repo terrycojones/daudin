@@ -13,6 +13,10 @@ programming language.
 
 Just run `pysh.py` and enter commands interactively.
 
+Should run fine on a modern Python (I am using 3.7.3) and will run with
+some issues on Python 2.7 (please send me feedback, open issues, create
+pull requests).
+
 ### Examples
 
 It looks like a regular shell:
@@ -351,6 +355,10 @@ def fl():
     return sys.stdin[0]
 
 
+# The following functions (push, pop, clear, apply) show how you can use
+# sys.stdin as a stack. You might never want to do that, but it illustrates
+# how pysh pipelines can be used to implement a stack machine.
+
 def push(*args):
     "Treat sys.stdin as a stack (a list) and push args onto it."
     if isinstance(sys.stdin, list):
@@ -390,3 +398,72 @@ def apply(n=None):
         print('Empty stack!', file=sys.stderr)
         return sys.stdin
 ```
+
+## Background & thanks
+
+I wrote `pysh` on the evening of Oct 4, 2019 following a discussion about
+shells with
+[Prof. Derek Smith](https://www.zoo.cam.ac.uk/directory/derek-smith). He'd
+overheard me talking to a student. I was saying how awesome the shell is
+(really meaning its pipelines and the power you get from it falling back
+onto external programs in `$PATH` when it encounters a non-keyword).
+
+Derek said he thinks the shell really sucks.  He made two strong points.
+
+1. First, he asked why we have to program the shell in this archaic painful
+language when we use a completely different language to get our "real" work
+done. Why can't it all just be one language.
+
+I told him how I love pipelines and how natural they are (unlike the way
+you need to nest functions in a regular language, or use prefix as in
+[Lisp](https://en.wikipedia.org/wiki/Lisp_(programming_language)), or
+postix as in
+[Reverse Polish Notation](https://en.wikipedia.org/wiki/Reverse_Polish_notation)
+(RPN).
+
+Unlike in those other environments, in a shell pipeline you just say what
+you want to get done in the natural order, you give arguments in the
+natural place, and the shell makes the data flow along the pipeline behind
+the scenes via hooking up standard input and output between successive
+commands.
+
+I mentioned an experimental new shell to Derek,
+[nushell](http://www.jonathanturner.org/2019/08/introducing-nushell.html),
+that [Nelson Minar](https://twitter.com/nelson) had recently pointed me
+to. I told him how `nushell` lets structured data flow along the
+pipeline. He gave an outraged snort.
+
+2. Derek's second comment was: "but why structured data"? Why can't a
+number, a string, a list, an object, or a function, flow along the
+pipeline? He's a Lisp programmer, and he's never seen a reason to move to
+any other programming environment. You can understand why.
+
+I recently wrote
+[a Python RPN calculator](https://github.com/terrycojones/rpnpy/) that lets
+you put anything onto the stack and operate on it, so I've been thinking
+about something like this, but in the context of a stack, not the shell.
+
+With Derek's two provocative questions burning brightly in my mind, I
+started thinking about how to write a shell that was all Python, with the
+elegance of shell pipelines (both conceptually and syntactically), and that
+would allow anything to flow along the pipeline. And, for bonus points,
+make it easy to use and seamlessly tie in to all the UNIX commands a
+regular shell provides access to.
+
+Once I had the basic idea of what to write, the code was pretty
+straightforward to put together due to Python's strong support for parsing,
+compiling, evaluating, and execing Python code and the nice
+[subprocess](https://docs.python.org/3.7/library/subprocess.html)
+library. The rest was just glue and a REPL loop.  An initial working
+version was about 280 lines of code (now up to 384) and could be written in
+one evening. The code is still quite ugly and brittle (no tests, various
+exceptions will probably still cause `pysh` to exit). It's also not going
+to be great at handling massive outputs.  But it works fine as an initial
+proof of concept.
+
+I'm going to try using `pysh` for real and see what kinds of additional
+helper functions I end up adding and how things go in general.  It's easy
+to imagine some things, like a smart `cd` command (I've written quite a few
+shell `cd` commands over the years, including a client-server one :-)).
+
+Thanks for reading, and thanks Derek & Nelson.
