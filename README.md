@@ -548,7 +548,9 @@ I recently wrote
 [a Python RPN calculator](https://github.com/terrycojones/rpnpy/) that lets
 you put anything onto the stack and operate on it, so I've been thinking
 about very general and syntactically easy use of Python like this, but in
-the context of a stack, not the shell.
+the context of a stack, not the shell.  I also wrote
+[pystdin](https://github.com/terrycojones/pystdin) to allow you to easily
+process standard input in Python, without having to do so much typing.
 
 With Derek's two provocative questions burning brightly in my mind, I
 started thinking about how to write a shell that was all Python, with the
@@ -567,6 +569,21 @@ one evening. The code is still quite ugly and brittle (no tests, various
 exceptions will probably still cause `pysh` to exit). It's also not going
 to be great at handling massive outputs.  But it works fine as an initial
 proof of concept.
+
+I find it interesting that it feels like it generalizes my RPN calculator
+and `pystdin` (both mentioned above). E.g., doing something simple to
+standard input can be written like:
+
+```python
+>>> ls | for i in _: print(i[:3])
+... 
+Mak
+REA
+pys
+set
+she
+tes
+```
 
 I'm going to try using `pysh` for real and see what kinds of additional
 helper functions I end up adding and how things go in general.  It's easy
