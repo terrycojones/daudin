@@ -50,11 +50,15 @@ But in fact it's Python all the way down:
 And you can seamlessly mix UNIX commands with Python:
 
 ```python
->>> ls | for i in sys.stdin:
-...   print(len(i))
-...
-9
-7
+>>> ls | for name in sys.stdin:
+...   print(len(name), name.split('.')[0].upper())
+... 
+8 MAKEFILE
+9 README
+4 PYSH
+8 SETUP
+8 SHELL
+4 TEST
 ```
 
 ```python

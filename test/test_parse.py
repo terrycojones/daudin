@@ -7,8 +7,8 @@ class TestLineSplitter(TestCase):
     """Test the lineSplitter function."""
 
     def testEmptyString(self):
-        """An empty string should result the empty list."""
-        self.assertEqual([],
+        """An empty string should result in a list with an empty string."""
+        self.assertEqual([''],
                          list(lineSplitter('')))
 
     def testString(self):
