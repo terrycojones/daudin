@@ -1,6 +1,6 @@
 ## Pysh - a Python command-line shell
 
-Here is a script, `pysh.py`, providing a UNIX command-line shell based on
+Here is a script, `shell.py`, providing a UNIX command-line shell based on
 Python.
 
 ## Aim
@@ -11,7 +11,7 @@ programming language.
 
 ## Usage
 
-Just run `pysh.py` and enter commands interactively.
+Just run `shell.py` and enter commands interactively.
 
 Should run fine on a modern Python (I am using 3.7.3) and will run with
 some issues on Python 2.7 (please send me feedback, open issues, create
@@ -19,14 +19,16 @@ pull requests).
 
 ### Examples
 
-It looks like a regular shell:
+The following all assume you have run `shell.py` (which prints the `>>>`
+prompt in the examples).
 
-```sh
-$ pysh.py
+Like a regular shell, you have immediate access to UNIX tools:
+
+```python
 >>> ls -l
 total 16
 -rw-rw-r-- 1 terry terry   350 Oct  5 13:06 README.md
--rwxrwxr-x 1 terry terry 10422 Oct  5 13:03 pysh.py
+-rwxrwxr-x 1 terry terry 10422 Oct  5 13:03 shell.py
 >>> ls -l | wc -l
 3
 >>> echo hello there > /tmp/xxx
@@ -36,72 +38,56 @@ hello there
 
 But in fact it's Python all the way down:
 
-```sh
-$ pysh.py
+```python
+>>> from math import pi
+>>> def area(r):
+...   return r ** 2 * pi
+...
+>>> area(2.0)
+12.566370614359172
+```
+
+And you can seamlessly mix UNIX commands with Python:
+
+```python
 >>> ls | for i in sys.stdin:
 ...   print(len(i))
 ...
 9
 7
->>> import this
-The Zen of Python, by Tim Peters
-
-Beautiful is better than ugly.
-Explicit is better than implicit.
-Simple is better than complex.
-Complex is better than complicated.
-Flat is better than nested.
-Sparse is better than dense.
-Readability counts.
-Special cases aren't special enough to break the rules.
-Although practicality beats purity.
-Errors should never pass silently.
-Unless explicitly silenced.
-In the face of ambiguity, refuse the temptation to guess.
-There should be one-- and preferably only one --obvious way to do it.
-Although that way may not be obvious at first unless you're Dutch.
-Now is better than never.
-Although never is often better than *right* now.
-If the implementation is hard to explain, it's a bad idea.
-If the implementation is easy to explain, it may be a good idea.
-Namespaces are one honking great idea -- let's do more of those!
 ```
 
-In the further examples on this page, the initial invocation of `pysh.py`
-is omitted.
-
-You can see you really do have full Python:
-
 ```python
->>> from math import pi
->>> def area(r):
-...   return r ** 2 * pi
-... 
->>> area(2.0)
-12.566370614359172
 >>> def triple(x):
 ...   return int(x) * 3
 ...
+# The [0] in the following is needed because shell commands always return a
+# list of strings.
 >>> echo a b c | wc -w | triple(sys.stdin[0])
 9
 ```
 
-(The `[0]` in the above is needed because shell commands always return a
-list of strings.)
-
-And you have the shell too:
-
 ```python
 >>> def triple(x):
 ...   return int(x) * 3
 ...
+# In the following, cat reads from the terminal, as normal.
 >>> cat | wc -w | triple(sys.stdin[0])
 a b c
 ^D
 9
 ```
 
-in the above, the `cat` is reading from the terminal, as normal.
+```python
+>>> import this | grep 'better than'
+Beautiful is better than ugly.
+Explicit is better than implicit.
+Simple is better than complex.
+Complex is better than complicated.
+Flat is better than nested.
+Sparse is better than dense.
+```
+
 
 ## Pipelines
 
@@ -126,6 +112,27 @@ If you hit ENTER in the middle of a pipeline, the current value of
 value is not shown in between running commands joined with the `|` pipe
 symbol.
 
+So this
+
+```python
+>>> ls | wc -l
+2
+```
+
+is equivalent to this
+
+```python
+>>> ls
+README.md
+shell.py
+# The pipeline is still present, with 2 strings in it.
+>>> wc -l
+2
+```
+
+except the latter prints the result of the `ls` because I hit ENTER between
+the commands.
+
 ### Exiting a pipeline
 
 Just enter control-D as you normally would to end input. The current
@@ -139,6 +146,55 @@ restore it to its former value, you can undo with `%u`.
 
 There is only a single undo at the moment. This can obviously be improved,
 and a redo command could be added.
+
+## Command substitution
+
+In regular shells there is a way to have part of a command line executed in
+a sub-shell and the output of that sub-shell replaces that part of the
+original command.
+
+For example, suppose you want to get the value of `date` into a variable.
+In the Bash shell you could do this:
+
+```sh
+$ date=$(date)
+$ echo date
+Sat Oct  5 22:36:24 CEST 2019
+```
+
+In `pysh` there is a `sh` function that you can use to pass commands to a
+sub-shell. So, equivalently:
+
+```python
+>>> date = sh('date')
+>>> date
+Sat Oct  5 22:36:24 CEST 2019
+```
+
+If you then wanted to extract the month from the `date` output, in the
+shell you could do this:
+
+```sh
+# Working from the date variable set above:
+$ month=$(echo $date | cut -f2 -d' ')
+# Calling date again:
+$ month=$(date | cut -f2 -d' ')
+$ echo $month
+Oct
+```
+
+Same thing in `pysh`:
+
+```python
+# Working from the date variable set above:
+>>> month = date.split()[1]
+# Calling date again:
+>>> month = sh('date').split()[1]
+# Using cut to have the shell do all the work (note the use of \| in the
+# following to ensure that pysh doesn't incorrectly split the command
+# into two pieces.
+>>> month = sh('date \| cut -f2 -d" "')
+```
 
 ## Readline
 
@@ -460,10 +516,11 @@ really sucks.  He asked two questions, illustrating his strong objections:
    (RPN) calculator or other stack-based language.
 
    Unlike in those other environments, in a shell pipeline you indicate
-   what you want to get done in the "natural" left-to-right order. You give
-   arguments in a natural place. The shell takes care of making the data
-   flow through the pipeline behind the scenes, hooking up standard input
-   and output between successive commands.
+   what you want to get done in the "natural" (for many people)
+   left-to-right order. You give arguments in a natural place. The shell
+   takes care of making the data flow through the pipeline behind the
+   scenes, hooking up standard input and output between successive
+   commands.
 
    I mentioned an experimental new shell
    ([nushell](http://www.jonathanturner.org/2019/08/introducing-nushell.html))
