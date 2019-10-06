@@ -162,7 +162,7 @@ In the Bash shell you could do this:
 
 ```sh
 $ date=$(date)
-$ echo date
+$ echo $date
 Sat Oct  5 22:36:24 CEST 2019
 ```
 
