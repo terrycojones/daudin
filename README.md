@@ -24,7 +24,7 @@ prompt in the examples).
 
 Like a regular shell, you have immediate access to UNIX tools:
 
-```python
+```sh
 >>> ls -l
 total 16
 -rw-rw-r-- 1 terry terry   350 Oct  5 13:06 README.md
