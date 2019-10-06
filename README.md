@@ -194,6 +194,8 @@ Same thing in `pysh`:
 >>> month = date.split()[1]
 # Calling date again:
 >>> month = sh('date').split()[1]
+>>> month
+Oct
 # Using cut to have the shell do all the work (note the use of \| in the
 # following to ensure that pysh doesn't incorrectly split the command
 # into two pieces.
