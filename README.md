@@ -297,11 +297,11 @@ href="#debugging">below</a>) to get some idea of what happened:
                     Trying to compile 'len(None)'.
                     Command compiled OK.
                     Could not exec: object of type 'NoneType' has no len().
+                    Trying shell with stdin None.
 /bin/sh: 1: Syntax error: word unexpected (expecting ")")
 Process error: Command 'len(None)' returned non-zero exit status 2.
 None
 ```
-
 
 ## Changing directory
 
