@@ -158,7 +158,8 @@ a sub-shell and the output of that sub-shell replaces that part of the
 original command.
 
 For example, suppose you want to get the value of `date` into a variable.
-In the Bash shell you could do this:
+In the [bash](https://en.wikipedia.org/wiki/Bash_(Unix_shell)) shell you
+could do this:
 
 ```sh
 $ date=$(date)
@@ -198,7 +199,7 @@ Same thing in `pysh`:
 Oct
 # Using cut to have the shell do all the work (note the use of \| in the
 # following to ensure that pysh doesn't incorrectly split the command
-# into two pieces.
+# into two pieces):
 >>> month = sh('date \| cut -f2 -d" "')
 ```
 
