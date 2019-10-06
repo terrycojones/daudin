@@ -153,11 +153,17 @@ class Pipeline:
                 self.text = fullCommand
 
         if exception is None:
-            stdoutValue = so.getvalue()
-            if stdoutValue:
-                self._debug('Exec printed %r.' % (stdoutValue,))
-                self.stdin = stdoutValue
+            stdout = so.getvalue()
+            if stdout:
                 doPrint = True
+                self._debug('Exec printed %r.' % (stdout,))
+                if stdout.endswith('\n'):
+                    stdout = stdout[:-1]
+                if stdout.find('\n') > -1:
+                    self.stdin = stdout.split('\n')
+                    self.lastResultIsList = True
+                else:
+                    self.stdin = stdout
         else:
             self._debug('Trying shell with stdin %r.' % (self.stdin,))
             result = self.sh(fullCommand)
