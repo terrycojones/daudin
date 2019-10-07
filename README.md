@@ -611,4 +611,3 @@ Here are some concrete things I'd like to (possibly) add
   [os.forkpty](https://docs.python.org/3.5/library/os.html#os.forkpty) or
   the [pty](https://docs.python.org/3.5/library/pty.html#module-pty)
   module).
-* Add some kind of screen clearing, a la Control-l in bash.
