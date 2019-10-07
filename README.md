@@ -595,3 +595,20 @@ Thanks for reading, and thanks Derek & Nelson.
 
 Terry Jones (@terrycojones)<br>
 terry@jon.es
+
+
+## TODO
+
+Here are some concrete things I'd like to (possibly) add
+
+* Just have one sub-shell and send commands to it instead of forking a new
+  one for each command. That would allow persistent shell variables. `cd`
+  commands could be run simultaneously in both shells.
+* Add some way to deal with standard error?
+* Some of what might be wanted with `stdin` can be done with tee.
+* Make it so code can return `IGNORE` to explicitly preserve the pipeline.
+* Make it so that tools that produce color escape codes do so in pysh (use
+  [os.forkpty](https://docs.python.org/3.5/library/os.html#os.forkpty) or
+  the [pty](https://docs.python.org/3.5/library/pty.html#module-pty)
+  module).
+* Add some kind of screen clearing, a la Control-l in bash.
