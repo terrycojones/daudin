@@ -486,6 +486,8 @@ somewhere. This doesn't apply when `ls` is piped into another command
 because in that case a pseudo-tty isn't used. The ls output prints just
 fine with the embedded TAB, but how did it get there?
 
+The terminal sometimes gets left in a weird state.
+
 ## Background & thanks
 
 The Daudin name comes from
