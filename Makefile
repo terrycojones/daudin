@@ -19,4 +19,4 @@ clean:
 # twine-pypi').
 upload:
 	python setup.py sdist
-	twine upload dist/daudin-$$(grep __version__ daudinlib/__init__.py | tr -d "'" | awk '{print $$3}').tar.gz
+	twine upload dist/daudin-$$(grep __version__ daudinlib/__init__.py | cut -f2 -d\').tar.gz
