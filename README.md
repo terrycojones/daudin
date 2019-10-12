@@ -58,11 +58,11 @@ But in fact it's Python all the way down:
 ## Pipelines
 
 Shell pipelines are super cool. As you've seen above `daudin`, has
-pipelines that look just like the shell, but with a few twists.
+pipelines that look just like the shell. But with a few added extras.
 
 Firstly, you can mix Python and the shell in a `daudin` pipeline:
 
-```python
+```
 >>> import this | grep 'better than'
 Beautiful is better than ugly.
 Explicit is better than implicit.
@@ -75,7 +75,7 @@ Although never is often better than *right* now.
 ```
 
 In Python commands in a `daudin` pipeline, the current pipeline value is
-kept in a variable called `_`, which may be of any type:
+kept in a variable named `_`, which may be of any type:
 
 ```python
 >>> -6 | abs(_) | _ * 7
@@ -150,6 +150,9 @@ a b c
 3
 ```
 
+You can also change directories in the middle of a pipeline ( (<a
+href="#cd">see below</a>).
+
 You can put comments into the middle of a pipeline
 
 ```python
@@ -167,8 +170,8 @@ test
 6
 ```
 
-You can pipe the output of a multi-line Python command directly into
-another command:
+You can also pipe the output of a multi-line Python command directly into
+a following command:
 
 ```python
 >>> ls | for name in _:
@@ -178,7 +181,6 @@ another command:
 5 SETUP
 6 DAUDIN
 6 README
-7 #README
 8 MAKEFILE
 9 DAUDINLIB
 17 EXAMPLE-FUNCTIONS
@@ -194,7 +196,6 @@ The above pipeline can be immediately continued:
 17 EXAMPLE-FUNCTIONS
 9 DAUDINLIB
 8 MAKEFILE
-7 #README
 6 README
 6 DAUDIN
 5 SETUP
@@ -209,6 +210,7 @@ restore it to its former value, you can undo with `%u`.
 There is only a single undo at the moment. This could obviously be
 improved, and a redo command could be added.
 
+<a id="cd"></a>
 ## Changing directory
 
 Changing directory has to be handled a little specially because although a
@@ -242,13 +244,6 @@ special command called `%cd`:
 /tmp
 ```
 
-*Warning*: I don't really like these special commands! `daudin` is 99.9% pure
-Python and doesn't absolutely require these kinds of hacks (which in this
-case actually break some infrequently used syntax, such as entering a
-multi-line value using Python's `%` operator if you happen to have a
-variable called `cd` defined). So I may remove it entirely.
-But... changing directory is rather common, so I'm not sure.
-
 Importantly, changing directory does not affect the current pipeline value.
 So you can change directory in the middle of a pipeline:
 
@@ -256,7 +251,7 @@ So you can change directory in the middle of a pipeline:
 >>> mkdir /tmp/a /tmp/b
 >>> cd('/tmp/a')
 >>> touch x y z
->>> ls
+>>> ls -1
 x
 y
 z
@@ -344,7 +339,7 @@ Use the special `%r` (reload) command to re-read your start-up file.
 
 ## Exiting daudin
 
-Just use control-D as you would in any other shell.  Or you can call a
+Just use control-d as you would in any other shell.  Or you can call a
 Python builtin function `exit()` or `quit()`, or use `sys.exit()` (all of
 which can be given an `int` exit status).
 
