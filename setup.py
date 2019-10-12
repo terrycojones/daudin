@@ -13,7 +13,7 @@ def version():
     import re
 
     init = os.path.join(
-        os.path.abspath(os.path.dirname(__file__)), 'pysh', '__init__.py')
+        os.path.abspath(os.path.dirname(__file__)), 'daudin', '__init__.py')
     with open(init) as fp:
         initData = fp.read()
     match = re.search(r"^__version__ = ['\"]([^'\"]+)['\"]",
@@ -24,29 +24,25 @@ def version():
         raise RuntimeError('Unable to find version string in %r.' % init)
 
 
-setup(name='pysh',
+setup(name='daudin',
       version=version(),
-      packages=['pysh'],
+      packages=['daudinlib'],
       include_package_data=False,
-      url='https://github.com/terrycojones/pysh',
-      download_url='https://github.com/terrycojones/pysh',
+      url='https://github.com/terrycojones/daudin',
+      download_url='https://github.com/terrycojones/daudin',
       author='Terry Jones',
       author_email='terry@jon.es',
       keywords=['python shell'],
       classifiers=[
           'Programming Language :: Python :: 3',
-          'Programming Language :: Python :: 2.7',
           'Intended Audience :: Developers',
           'License :: OSI Approved :: MIT License',
           'Operating System :: UNIX',
           'Topic :: Software Development :: Shell',
       ],
       license='MIT',
-      scripts=['shell.py'],
+      scripts=['daudin'],
       description='A UNIX command-line shell based on Python',
-      install_requires=[
-          'six>=1.11.0',
-      ],
       extras_require={
         'dev': [
             'flake8',

@@ -1,0 +1,41 @@
+#!/usr/bin/env python
+
+import argparse
+
+from daudinlib.readline import setupReadline
+from daudinlib.interaction import REPL
+from daudinlib.pipeline import Pipeline
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        description='A Python shell')
+
+    parser.add_argument(
+        '--ps1', default=REPL.DEFAULT_PS1,
+        help='The primary shell prompt.')
+
+    parser.add_argument(
+        '--ps2', default=REPL.DEFAULT_PS2,
+        help='The secondary shell prompt.')
+
+    parser.add_argument(
+        '--noInit', action='store_false', default=True, dest='loadInitFile',
+        help='If given, do not load the daudin start-up file (~/.daudin.py).')
+
+    parser.add_argument(
+        '--debug', action='store_true', default=False,
+        help='If given, start in debug mode.')
+
+    parser.add_argument(
+        '--tracebacks', action='store_true', default=False,
+        help='If given, print exception tracebacks (implies --debug).')
+
+    args = parser.parse_args()
+
+    setupReadline()
+    pipeline = Pipeline(loadInitFile=args.loadInitFile)
+    if args.tracebacks:
+        pipeline.toggleTracebacks()
+    REPL(pipeline=pipeline, ps1=args.ps1, ps2=args.ps2).interact()

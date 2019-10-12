@@ -1,5 +1,25 @@
 import readline
 import os
+import glob
+
+
+class Completor():
+
+    def complete(self, text, state):
+        if state == 0:
+            self.completions = []
+            for path in glob.glob(text + '*'):
+                if os.path.isdir(path):
+                    if not path.endswith(os.sep):
+                        path += os.sep
+                else:
+                    path += ' '
+                self.completions.append(path)
+
+        try:
+            return self.completions[state]
+        except IndexError:
+            return None
 
 
 def setupReadline():
@@ -13,8 +33,12 @@ def setupReadline():
         # typing at us, and so no point in setting up readline.
         return False
 
+    readline.parse_and_bind('tab: complete')
+    readline.set_completer_delims(' \t\n')
+    readline.set_completer(Completor().complete)
+
     # Readline code from https://docs.python.org/3.7/library/readline.html
-    histfile = os.path.join(os.path.expanduser('~'), '.pysh_history')
+    histfile = os.path.join(os.path.expanduser('~'), '.daudin_history')
 
     try:
         readline.read_history_file(histfile)

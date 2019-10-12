@@ -1,36 +1,39 @@
-## Pysh - a Python command-line shell
+## Daudin - a Python command-line shell
 
-Here is a script, `shell.py`, providing a UNIX command-line shell based on
+Here is a script, `daudin`, providing a UNIX command-line shell based on
 Python.
 
 ## Aim
 
 Provide a Python shell that is at once as convenient to use as the regular
-shell (in particular providing pipelines) but which uses Python as its
+shell (in particular providing pipelines) but which has Python as its
 programming language.
 
 ## Usage
 
-Just run `shell.py` and enter commands interactively.
+Run `daudin` and enter commands interactively.
 
-Should run fine on a modern Python (I am using 3.7.3) and will run with
-some issues on Python 2.7 (please send me feedback, open issues, create
-pull requests).
+Should run fine on a recent version of Python 3 (I am using 3.7.3).
 
 ### Examples
 
-The following all assume you have run `shell.py` (which prints the `>>>`
-prompt in the examples).
+The following examples all assume you have already run `daudin` (which
+prints the `>>>` prompt).
 
-Like a regular shell, you have immediate access to UNIX tools:
+Like a regular shell, you have direct access to UNIX tools:
 
 ```sh
 >>> ls -l
-total 16
--rw-rw-r-- 1 terry terry   350 Oct  5 13:06 README.md
--rwxrwxr-x 1 terry terry 10422 Oct  5 13:03 shell.py
->>> ls -l | wc -l
-3
+total 44
+-rw-r--r-- 1 terry terry   635 Oct 12 17:34 Makefile
+-rw-rw-r-- 1 terry terry 16619 Oct 12 23:05 README.md
+-rwxrwxr-x 1 terry terry  1261 Oct 12 22:42 daudin
+drwxrwxr-x 3 terry terry  4096 Oct 12 22:51 daudinlib
+-rw-rw-r-- 1 terry terry  2309 Oct 12 23:05 example-functions.py
+-rw-r--r-- 1 terry terry  1546 Oct 12 17:43 setup.py
+drwxrwxr-x 3 terry terry  4096 Oct 12 22:48 test
+>>> ls | wc -l
+7
 >>> echo hello there > /tmp/xxx
 >>> cat /tmp/xxx
 hello there
@@ -40,6 +43,8 @@ But in fact it's Python all the way down:
 
 ```python
 >>> from math import pi
+>>> pi
+3.141592653589793
 >>> def area(r):
 ...   return r ** 2 * pi
 ...
@@ -47,40 +52,12 @@ But in fact it's Python all the way down:
 12.566370614359172
 ```
 
-And you can seamlessly mix UNIX commands with Python:
+## Pipelines
 
-```python
->>> ls | for name in sys.stdin:
-...   print(len(name), name.split('.')[0].upper())
-... 
-8 MAKEFILE
-9 README
-4 PYSH
-8 SETUP
-8 SHELL
-4 TEST
-```
+Shell pipelines are super cool. As you've seen above `daudin`, has
+pipelines that look just like the shell, but with a few twists.
 
-```python
->>> def triple(x):
-...   return int(x) * 3
-...
-# The [0] in the following is needed because shell commands always return a
-# list of strings.
->>> echo a b c | wc -w | triple(sys.stdin[0])
-9
-```
-
-```python
->>> def triple(x):
-...   return int(x) * 3
-...
-# In the following, cat reads from the terminal, as normal.
->>> cat | wc -w | triple(sys.stdin[0])
-a b c
-^D
-9
-```
+Firstly, you can mix Python and the shell in a `daudin` pipeline:
 
 ```python
 >>> import this | grep 'better than'
@@ -90,218 +67,144 @@ Simple is better than complex.
 Complex is better than complicated.
 Flat is better than nested.
 Sparse is better than dense.
+Now is better than never.
+Although never is often better than *right* now.
 ```
 
-
-## Pipelines
-
-Shell pipelines are super cool. So in `pysh` you're *always* in a pipeline.
-The current pipeline value is kept in `sys.stdin`:
+In Python commands in a `daudin` pipeline, the current pipeline value is
+kept in a variable called `_`, which may be of any type:
 
 ```python
->>> -6 | abs(sys.stdin) | sys.stdin * 6
-36
+>>> -6 | abs(_) | _ * 7
+42
+>>> 'hello' | _.title()
+Hello
 ```
 
-The current pipeline value is also available in the special variable `_` as
-a convenience:
+UNIX commands produce lists of strings:
 
 ```python
->>> -6 | abs(_) | _ * 6
-36
+>>> ls | for name in _:
+...   prefix = name.split('.')[0]
+...   print(len(prefix), prefix.upper())
+... 
+8 MAKEFILE
+6 README
+6 DAUDIN
+9 DAUDINLIB
+17 EXAMPLE-FUNCTIONS
+5 SETUP
+4 TEST
 ```
 
-If you hit ENTER in the middle of a pipeline, the current value of
-`sys.stdin` is printed (but the pipeline is still intact).  The pipeline
-value is not shown in between running commands joined with the `|` pipe
-symbol.
+So you need to use `_[0]` if you just want the first line of output:
 
-So this
 
 ```python
->>> ls | wc -l
-2
+>>> def triple(x):
+...   return int(x) * 3
+...
+>>> echo a b c | wc -w | triple(_[0])
+9
+```
+
+Here's a similar command, wtih `cat` reading from the terminal, as
+normal.
+
+```python
+>>> def triple(x):
+...   return int(x) * 3
+...
+>>> cat | wc -w | triple(_[0])
+a b c
+^D
+9
+```
+
+You can hit ENTER in the middle of a pipeline without disrupting it. So
+this:
+
+```python
+>>> echo a b c | wc -w
+3
 ```
 
 is equivalent to this
 
 ```python
->>> ls
-README.md
-shell.py
-# The pipeline is still present, with 2 strings in it.
->>> wc -l
-2
+>>> echo a b c |
+>>> wc -w
+3
 ```
 
-except the latter prints the result of the `ls` because I hit ENTER between
-the commands.
+And if you forget to end a pipeline command-line with a `|` you can just
+put one at the start of the next line to continue the pipeline:
 
-### Exiting a pipeline
+```python
+>>> echo a b c
+a b c
+>>> | wc -w
+3
+```
 
-Just enter control-D as you normally would to end input. The current
-pipeline value will then be printed (unless it has just been printed
-because you hit ENTER).  A new pipeline is immediately started.
+You can put comments into the middle of a pipeline
+
+```python
+>>> ls -1
+Makefile
+README.md
+daudin
+daudinlib
+setup.py
+test
+>>> # The pipeline is still alive!
+>>> _
+['Makefile', 'README.md', 'daudin', 'daudinlib', 'setup.py', 'test']
+>>> | wc -l
+6
+```
+
+You can pipe the output of a multi-line Python command directly into
+another command:
+
+```python
+>>> ls | for name in _:
+...   prefix = name.split('.')[0]
+...   print(len(prefix), prefix.upper()) | | sort
+4 TEST
+5 SETUP
+6 DAUDIN
+6 README
+7 #README
+8 MAKEFILE
+9 DAUDINLIB
+17 EXAMPLE-FUNCTIONS
+```
+
+There are two `|` symbols before the `sort` above because an empty command
+is necessary to terminate the compound Python command.
+
+The above pipeline can be immediately continued:
+
+```python
+>>> | sort -nr
+17 EXAMPLE-FUNCTIONS
+9 DAUDINLIB
+8 MAKEFILE
+7 #README
+6 README
+6 DAUDIN
+5 SETUP
+4 TEST
+```
 
 ### Undo in a pipeline
 
 If you run a command that alters the pipeline content and you want to
 restore it to its former value, you can undo with `%u`.
 
-There is only a single undo at the moment. This can obviously be improved,
-and a redo command could be added.
-
-## Command substitution
-
-In regular shells there is a way to have part of a command line executed in
-a sub-shell and the output of that sub-shell replaces that part of the
-original command.
-
-For example, suppose you want to get the value of `date` into a variable.
-In the [bash](https://en.wikipedia.org/wiki/Bash_(Unix_shell)) shell you
-could do this:
-
-```sh
-$ date=$(date)
-$ echo $date
-Sat Oct  5 22:36:24 CEST 2019
-```
-
-In `pysh` there is a `sh` function that you can use to pass commands to a
-sub-shell. So, equivalently:
-
-```python
->>> date = sh('date')
->>> date
-Sat Oct  5 22:36:24 CEST 2019
-```
-
-If you then wanted to extract the month from the `date` output, in the
-shell you could do this:
-
-```sh
-# Working from the date variable set above:
-$ month=$(echo $date | cut -f2 -d' ')
-# Calling date again:
-$ month=$(date | cut -f2 -d' ')
-$ echo $month
-Oct
-```
-
-Same thing in `pysh`:
-
-```python
-# Working from the date variable set above:
->>> month = date.split()[1]
-# Calling date again:
->>> month = sh('date').split()[1]
->>> month
-Oct
-# Using cut to have the shell do all the work (note the use of \| in the
-# following to ensure that pysh doesn't incorrectly split the command
-# into two pieces):
->>> month = sh('date \| cut -f2 -d" "')
-```
-
-## Readline
-
-`pysh` uses the [GNU](https://www.gnu.org/)
-[readline](https://docs.python.org/3/library/readline.html) library to make
-it easy to edit and re-enter commands. The history is stored in
-`~/.pysh_history`.
-
-<a id="start-up"></a>
-## Start-up file
-
-`pysh` will initially read and execute code in a `~/.pysh.py` file, if
-any. This is a good place to put convenience functions you write that you
-want readily accessible. See examples <a href="#functions">below</a>.
-
-Use the special `%r` (reload) command to re-read your start-up file.
-
-## Exiting pysh
-
-In most shells, a control-D exits. But in `pysh` it terminates the current
-pipeline. If you immediately give a second control-D, `pysh`
-will exit completely.
-
-You can also just call the Python builtin function `quit()` or use
-`sys.exit()` (both of which can be given an `int` exit status).
-
-## How commands are interpreted
-
-`pysh` first tries to run a command with
-[eval](https://docs.python.org/3/library/functions.html#eval).  If that
-succeeds, the result becomes `sys.stdin` for the next command. If `eval`
-fails,
-[code.compile_command](https://docs.python.org/3/library/code.html#code.compile_command)
-is used to try to compile the command. If a full command is found, it is
-given to [exec](https://docs.python.org/3/library/functions.html#exec) to
-execute.  If a partial command (e.g., the beginning of a function
-definition or a dictionary or list etc.) is found, a secondary prompt
-(`sys.ps2`) is printed.  If a command cannot be compiled or executed,
-execution is attempted via the shell (`/bin/sh`) using
-[subprocess](https://docs.python.org/3.7/library/subprocess.html). The
-current `sys.stdin` is provided to the shell on standard input.  The output
-of the shell command, if any, is converted to a Python `list` of strings
-(though `pysh` initially prints this as a single string for the user). The
-list of strings becomes the next `sys.stdin`. If the shell command produces
-no output, `sys.stdin` is set to `[]` for the next command (a value of
-`None` could be used instead, but it's more consistent to have all shell
-commands return a list of strings, even if empty).
-
-If a command returns a value (or if `None` is returned but the command
-prints something) that value becomes the new pipeline value.
-
-```python
->>> 4
-4
->>> _
-4
->>> [3, 6, 9]
-[3, 6, 9]
->>> print('hello')
-hello
->>> echo hello
-hello
-# Note that the echo command actually returns a list of strings, and that is
-# the value that sys.stdin is set to.  But, as mentioned above, when pysh
-# first prints the output from the shell command the lines are joined with \n.
->>> _
-['hello']
-```
-
-### Shortcoming
-
-Although the above works well almost all the time, it is not perfect. In
-particular it is possible that you enter a valid Python expression but that
-`eval` and `exec` cannot run it (e.g., `len(None)`). In that case the
-command is fed to the shell, which results in an error similar to
-
-```python
->>> len(None)
-/bin/sh: 1: Syntax error: word unexpected (expecting ")")
-Process error: Command 'len(None)' returned non-zero exit status 2.
-None
-```
-
-You can turn on debugging (use the special `%d` command, described <a
-href="#debugging">below</a>) to get some idea of what happened:
-
-```python
->>> %d
->>> len(None)
-                    Processing 'len(None)'.
-                    Trying eval 'len(None)'.
-                    Could not eval: object of type 'NoneType' has no len().
-                    Trying to compile 'len(None)'.
-                    Command compiled OK.
-                    Could not exec: object of type 'NoneType' has no len().
-                    Trying shell with stdin None.
-/bin/sh: 1: Syntax error: word unexpected (expecting ")")
-Process error: Command 'len(None)' returned non-zero exit status 2.
-None
-```
+There is only a single undo at the moment. This could obviously be
+improved, and a redo command could be added.
 
 ## Changing directory
 
@@ -310,7 +213,7 @@ Changing directory has to be handled a little specially because although a
 shell will have no effect on your current process. That's why `cd` has to
 be a special "built-in" command in regular shells.
 
-In `pysh` you can change dir using regular Python:
+In `daudin` you can change dir using regular Python:
 
 ```python
 >>> import os
@@ -336,7 +239,7 @@ special command called `%cd`:
 /tmp
 ```
 
-*Warning*: I don't really like these special commands! `pysh` is 99.9% pure
+*Warning*: I don't really like these special commands! `daudin` is 99.9% pure
 Python and doesn't absolutely require these kinds of hacks (which in this
 case actually break some infrequently used syntax, such as entering a
 multi-line value using Python's `%` operator if you happen to have a
@@ -363,15 +266,187 @@ z
 I am file x
 ```
 
+## Command substitution
+
+In regular shells there is a way to have part of a command line executed in
+a sub-shell and the output of that sub-shell replaces that part of the
+original command.
+
+For example, suppose you want to get the value of `date` into a variable.
+In the [bash](https://en.wikipedia.org/wiki/Bash_(Unix_shell)) shell you
+could do this:
+
+```sh
+$ d=$(date)
+$ echo $d
+Sat Oct  5 22:36:24 CEST 2019
+```
+
+In `daudin` there is a `sh` function that you can use to pass commands to a
+sub-shell. So, equivalently:
+
+```python
+>>> d = sh('date')
+>>> d
+Sat Oct  5 22:36:24 CEST 2019
+```
+
+If you then wanted to extract the month from the `date` output, in the
+shell you could do this:
+
+```sh
+# Working from the d variable set above:
+$ month=$(echo $d | cut -f2 -d' ')
+# Or you could call date again:
+$ month=$(date | cut -f2 -d' ')
+$ echo $month
+Oct
+```
+
+Same thing in `daudin`:
+
+```python
+# Working from the d variable set above:
+>>> month = d.split()[1]
+# Calling date again:
+>>> month = sh('date').split()[1]
+>>> month
+Oct
+# Using cut to have the shell do all the work (note the use of \| in the
+# following to ensure that daudin doesn't incorrectly split the command
+# into two pieces):
+>>> month = sh('date \| cut -f2 -d" "')
+```
+
+## Readline
+
+`daudin` uses the [GNU](https://www.gnu.org/)
+[readline](https://docs.python.org/3/library/readline.html) library to make
+it easy to edit and re-enter commands. The history is stored in
+`~/.daudin_history`.
+
+Filename completion in `daudin` is provided via `readline`.
+
+<a id="start-up"></a>
+## Start-up file
+
+`daudin` will initially read and execute code in a `~/.daudin.py` file, if
+any. This is a good place to put convenience functions you write that you
+want readily accessible. See examples <a href="#functions">below</a>.
+
+Use the `--noInit` argument when invoking `daudin` to disable loading the
+init file.
+
+Use the special `%r` (reload) command to re-read your start-up file.
+
+## Exiting daudin
+
+Just use control-D as you would in any other shell.  Or you can call a
+Python builtin function `exit()` or `quit()`, or use `sys.exit()` (all of
+which can be given an `int` exit status).
+
+## How commands are interpreted
+
+`daudin` first tries to run a command with
+[eval](https://docs.python.org/3/library/functions.html#eval).  If that
+succeeds, the result becomes `_` for the next command. If `eval` fails,
+[code.compile_command](https://docs.python.org/3/library/code.html#code.compile_command)
+is used to try to compile the command. If a full command is found, it is
+given to [exec](https://docs.python.org/3/library/functions.html#exec) to
+execute.  If a partial command (e.g., the beginning of a function
+definition or a dictionary or list etc.) is found, a secondary prompt
+(`sys.ps2`) is printed.  If a command cannot be compiled or executed,
+execution is attempted via the shell (`/bin/sh`) using
+[subprocess](https://docs.python.org/3.7/library/subprocess.html). The
+current `_` is provided to the shell on standard input.  The output of the
+shell command, if any, is converted to a Python `list` of strings (though
+`daudin` initially prints this as a single string for the user). The list
+of strings becomes the next `_`. If the shell command produces no output,
+`_` is set to `[]` for the next command (a value of `None` could be used
+instead, but it's more consistent to have all shell commands return a list
+of strings, even if empty).
+
+If a command returns a value (or if `None` is returned but the command
+prints something) that value becomes the new pipeline value:
+
+```python
+>>> 4
+4
+>>> _
+4
+>>> [3, 6, 9]
+[3, 6, 9]
+>>> print('hello')
+hello
+>>> echo hello too
+hello too
+# This echo command actually returns a list of one string, and that is the
+# value that _ is set to.  But, as mentioned above, when daudin first
+# prints the output from the shell command the lines are joined with '\n'.
+>>> _
+['hello too']
+```
+
+### Shortcoming
+
+Although the above works well almost all the time, it is not perfect. In
+particular it is possible that you enter a valid Python expression but that
+`eval` and `exec` cannot run it (e.g., `len(None)`). In that case the
+command is fed to the shell, which results in an error similar to
+
+```python
+>>> len(None)
+/bin/sh: 1: Syntax error: word unexpected (expecting ")")
+```
+
+You can turn on debugging via the special `%d` command (<a
+href="#debugging">see below for more detail</a>) to dig into what happened:
+
+```python
+>>> %d
+>>> len(None)
+                    Processing 'len(None)'.
+                    Not in pipeline.
+                    Trying eval 'len(None)'.
+                    Could not eval: object of type 'NoneType' has no len().
+                    Trying to compile 'len(None)'.
+                    Command compiled OK.
+                    Could not exec: object of type 'NoneType' has no len().
+                    Trying shell 'len(None)' with stdin None.
+                    In _shPty, stdin is None
+/bin/sh: 1: Syntax error: word unexpected (expecting ")")
+                    Shell returned '/bin/sh: 1: Syntax error: word unexpected (expecting ")")\n'
+```
+
 ## Changing prompts
 
-Just set `sys.ps1` or `sys.ps2`:
+There are `--ps1` and `--ps2` options that can be given on the command line
+to `daudin`. You can also set `sys.ps1` or `sys.ps2` while running:
 
 ```python
 >>> sys.ps1 = '% '
 % 3 + 4
 7
 ```
+
+## Shell execution environment
+
+When a shell command is the final command on a line, it is run in a
+[pseudotty](https://en.wikipedia.org/wiki/Pseudoterminal). So commands that
+check to see if they're running with standard output connected to a
+terminal will think they are. In that case, a command like `git status` or
+`ls --color=auto` will produce colored output that will be correctly
+displayed.
+
+## Pipeline execution environment
+
+When a Python command is run, it has access to the following variables
+
+* `cd` - a function for changing directory.
+* `sh` - a function for running a shell command.
+* `self` - the instance of `daudinlib.pipeline.Pipeline`. This allows full
+  access to the internals of the running `daudin` shell. So you can do
+  things like `self.debug = True`, and anything else you can think of.
 
 <a id="debugging"></s>
 ## Debugging
@@ -390,114 +465,37 @@ You can turn on debugging output using the special `%d` command, or set
 
 or run `self.toggleDebug()`.
 
+For more information you can enable printing of tracebacks via the `%t`
+special command.
+
+There are `--debug` and `--tracebacks` command-line options that can be
+given on `daudin` invocation to immediately enable debugging and traceback
+printing.
+
 <a id="functions"></a>
-## Functions
+## Initialization functions
 
-Here are some functions I wrote to give a flavor of what you can do and how
-to do it. These all live in my `~/.pysh.py` start-up file (described <a
-href="#start-up">above</a>).
+The file [example-functions.py](example-functions.py) has some functions
+that give a flavor of how you can add functionality to `daudin`. I have all
+these in my `~/.daudin.py` start-up file (described <a
+href="#start-up">above</a>) so they are always available.
 
-```python
-import sys
-from operator import itemgetter
-from collections import defaultdict
+## Bugs
 
-from pprint import pprint
-
-
-def pp():
-    "Pretty print standard input"
-    pprint(sys.stdin)
-    return sys.stdin
-
-
-def sus(n=None, print_=True):
-    """Perform the shell equivalent of sort | uniq -c | sort -n -r
-
-    @param n: The C{int} maximum number of items to return.
-    @param print_: If C{True}, output is printed. Else a C{list} of
-        C{(count, word)} C{tuple}s is returned (thus becoming the value of
-        C{sys.stdin} that will be available to the next pipeline command)
-    """
-    lines = defaultdict(int)
-
-    for line in sys.stdin:
-        lines[line] += 1
-
-    it = enumerate(
-        sorted(lines.items(), key=itemgetter(1), reverse=True), start=1)
-
-    if print_:
-        for i, (line, count) in it:
-            print('%d %s' % (count, line))
-            if n is not None and i >= n:
-                break
-    else:
-        result = []
-        for i, (line, count) in it:
-            result.append((count, line))
-            if n is not None and i >= n:
-                break
-        return result
-
-
-def ll():
-    "Get the last line of a list of lines (shell output)."
-    return sys.stdin[-1]
-
-
-def fl():
-    "Get the first line of a list of lines (shell output)."
-    return sys.stdin[0]
-
-
-# The following functions (push, pop, clear, apply) show how you can use
-# sys.stdin as a stack. You might never want to do that, but it illustrates
-# how pysh pipelines can be used to implement a stack machine.
-
-def push(*args):
-    "Treat sys.stdin as a stack (a list) and push args onto it."
-    if isinstance(sys.stdin, list):
-        sys.stdin.extend(args)
-        return sys.stdin
-    else:
-        return [sys.stdin] + list(args)
-
-
-def pop():
-    "Treating sys.stdin as a stack (a list), pop & print the top of the stack."
-    print(sys.stdin.pop(), file=sys.stderr)
-    return sys.stdin
-
-
-def clear():
-    "Treating sys.stdin as a stack (a list), clear the stack."
-    return []
-
-
-def apply(n=None):
-    """Treating sys.stdin as a stack (a list), pop a function from the top of
-       the stack and apply it to a given number of arguments"""
-    if sys.stdin:
-        if n is not None:
-            if len(sys.stdin) < n + 1:
-                print('Could not apply - not enough stack items',
-                      file=sys.stderr)
-            else:
-                func = sys.stdin.pop()
-                args = reversed(sys.stdin[-n:])
-        else:
-            func = sys.stdin.pop()
-            args = reversed(sys.stdin)
-        return func(*args)
-    else:
-        print('Empty stack!', file=sys.stderr)
-        return sys.stdin
-```
+I don't know why, but when I run `ls` alone on a line a TAB is in the
+output. The `ls` runs in a pseudo-tty and it seems that a TAB really does
+come back from the master pty desciptor. So I must be doing something wrong
+somewhere. This doesn't apply when `ls` is piped into another command
+because in that case a pseudo-tty isn't used. The ls output prints just
+fine with the embedded TAB, but how did it get there?
 
 ## Background & thanks
 
-I wrote `pysh` on the evening of Oct 4, 2019 following a discussion about
+The Daudin name comes from
+[François Marie Daudin](https://en.wikipedia.org/wiki/Fran%C3%A7ois_Marie_Daudin),
+a French zoologist who named the Python genus in 1826.
+
+I wrote `daudin` on the evening of Oct 4, 2019 following a discussion about
 shells with [Derek Smith](https://www.zoo.cam.ac.uk/directory/derek-smith)
 after he overheard me talking to a student. I was saying how awesome the
 shell is (really meaning its pipelines and the power you get from it
@@ -566,7 +564,7 @@ compiling, evaluating, and execing Python code and the nice
 library. The rest was just glue and a REPL loop.  An initial working
 version was about 280 lines of code (now up to 384) and could be written in
 one evening. The code is still quite ugly and brittle (no tests, various
-exceptions will probably still cause `pysh` to exit). It's also not going
+exceptions will probably still cause `daudin` to exit). It's also not going
 to be great at handling massive outputs.  But it works fine as an initial
 proof of concept.
 
@@ -585,7 +583,7 @@ she
 tes
 ```
 
-I'm going to try using `pysh` for real and see what kinds of additional
+I'm going to try using `daudin` for real and see what kinds of additional
 helper functions I end up adding and how things go in general.  It's easy
 to imagine some things, like a smart `cd` command (I've written quite a few
 shell `cd` commands over the years, including a client-server one :-)). The
@@ -607,7 +605,8 @@ Here are some concrete things I'd like to (possibly) add
 * Add some way to deal with standard error?
 * Some of what might be wanted with `stdin` can be done with tee.
 * Make it so code can return `IGNORE` to explicitly preserve the pipeline.
-* Make it so that tools that produce color escape codes do so in pysh (use
-  [os.forkpty](https://docs.python.org/3.5/library/os.html#os.forkpty) or
-  the [pty](https://docs.python.org/3.5/library/pty.html#module-pty)
-  module).
+* Guess at auto-indent level for incomplete commands.
+* Add a specially-named function that (if defined) is used to produce the
+  prompt.
+* Add a specially-named function that (if defined) run after each command
+  (or command-line).

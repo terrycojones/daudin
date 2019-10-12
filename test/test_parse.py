@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from pysh.parse import lineSplitter
+from daudinlib.parse import lineSplitter
 
 
 class TestLineSplitter(TestCase):
