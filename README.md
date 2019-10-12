@@ -1,13 +1,10 @@
 ## Daudin - a Python command-line shell
 
-Here is a script, `daudin`, providing a UNIX command-line shell based on
-Python.
+`daudin` is a UNIX command-line shell based on Python.
 
-## Aim
-
-Provide a Python shell that is at once as convenient to use as the regular
-shell (in particular providing pipelines) but which has Python as its
-programming language.
+The aim is to provide an interactive shell that is as convenient to use as
+the regular shell (in particular providing pipelines) but which has Python
+as its programming language.
 
 ## Usage
 
