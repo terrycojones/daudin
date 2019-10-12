@@ -6,6 +6,12 @@ The aim is to provide an interactive shell that is as convenient to use as
 the regular shell (in particular providing pipelines) but which has Python
 as its programming language.
 
+## Installation
+
+```sh
+$ pip install daudin
+```
+
 ## Usage
 
 Run `daudin` and enter commands interactively.
@@ -490,9 +496,12 @@ The terminal sometimes gets left in a weird state.
 
 ## Background & thanks
 
-The Daudin name comes from
+Daudin is the surname of
 [François Marie Daudin](https://en.wikipedia.org/wiki/Fran%C3%A7ois_Marie_Daudin),
-a French zoologist who named the Python genus in 1826.
+a prolific French zoologist who in 1826 gave the name "Python", to a genus
+in the [Pythonidae](https://en.wikipedia.org/wiki/Pythonidae) family.
+Pythonidae in turn is a member of the wonderfully named superfamily,
+[Pythonoidea](https://en.wikipedia.org/wiki/Pythonoidea).
 
 I wrote `daudin` on the evening of Oct 4, 2019 following a discussion about
 shells with [Derek Smith](https://www.zoo.cam.ac.uk/directory/derek-smith)
