@@ -255,6 +255,7 @@ empty command (on the line whose prompt is `...`):
 
 ```python
 >>> ls | for i in _: print(i[:3])
+...
 CHA
 LIC
 Mak
