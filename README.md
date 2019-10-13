@@ -90,7 +90,7 @@ UNIX commands produce lists of strings:
 >>> ls | for name in _:
 ...   prefix = name.split('.')[0]
 ...   print(len(prefix), prefix.upper())
-... 
+...
 8 MAKEFILE
 6 README
 6 DAUDIN
@@ -150,7 +150,7 @@ a b c
 3
 ```
 
-You can also change directories in the middle of a pipeline ( (<a
+You can also change directories in the middle of a pipeline (<a
 href="#cd">see below</a>).
 
 You can put comments into the middle of a pipeline
@@ -202,6 +202,56 @@ The above pipeline can be immediately continued:
 4 TEST
 ```
 
+Here's another example where two `|` symbols are needed to terminate the
+Python. Firstly, this command is terminated by an extra empty command (on
+the line whose prompt is `...`):
+
+```python
+>>> ls | for i in _: print(i[:3])
+...
+CHA
+LIC
+Mak
+REA
+dau
+dau
+dau
+dis
+exa
+set
+tes
+```
+
+To pipe that directly into another command, use `||`:
+
+```python
+>>> ls | for i in _: print(i[:3]) || wc -l
+11
+```
+
+The above could instead be piped into the
+[sus](https://github.com/terrycojones/daudin/blob/master/example-functions.py#L18)
+function I have in my `~/.daudin.py` file (see <a href="#start-up">Init
+file</a>) for details on this).  The `sus` Python function does the typical
+shell `sort | uniq -c | sort -nr` trick for finding the most common inputs:
+
+```python
+>>> ls | for i in _: print(i[:3]) || sus()
+3 dau
+1 CHA
+1 LIC
+1 Mak
+1 REA
+1 dis
+1 exa
+1 set
+1 tes
+```
+
+As above, the `||` is needed in order to provide an empty command (the
+zero-length string between the pipe symbols) to terminate the Python `for`
+block.
+
 ### Undo in a pipeline
 
 If you run a command that alters the pipeline content and you want to
@@ -209,6 +259,13 @@ restore it to its former value, you can undo with `%u`.
 
 There is only a single undo at the moment. This could obviously be
 improved, and a redo command could be added.
+
+You can of course always save the current pipeline value into a variable
+
+```python
+>>> echo a b c
+>>> a = _
+```
 
 <a id="cd"></a>
 ## Changing directory
@@ -227,7 +284,8 @@ In `daudin` you can change dir using regular Python:
 /tmp
 ```
 
-but that's a bit laborious.  So there's a `cd` function provided for you:
+but that's far too laborious for interactive use.  So there's a `cd`
+function provided for you:
 
 ```python
 >>> cd('/tmp')
@@ -244,25 +302,26 @@ special command called `%cd`:
 /tmp
 ```
 
-Importantly, changing directory does not affect the current pipeline value.
-So you can change directory in the middle of a pipeline:
+Changing directory does not affect the current pipeline value.  So you can
+change directory in the middle of a pipeline:
 
 ```python
 >>> mkdir /tmp/a /tmp/b
 >>> cd('/tmp/a')
 >>> touch x y z
->>> ls -1
-x
-y
-z
+>>> ls
+x  y  z
 >>> cd('/tmp/b')
->>> for i in _:
+>>> for i in _[0].split():
 ...   with open(i + '.txt', 'w') as fp:
 ...     print('I am file', i, file=fp)
 ...
 >>> cat x.txt
 I am file x
 ```
+
+The above could also have used `ls -1` (to make `ls` print its file names
+one per line) and then the `_[0].split()` could have instead just been `_`.
 
 ## Command substitution
 
@@ -326,16 +385,19 @@ it easy to edit and re-enter commands. The history is stored in
 Filename completion in `daudin` is provided via `readline`.
 
 <a id="start-up"></a>
-## Start-up file
+## Init file
 
 `daudin` will initially read and execute code in a `~/.daudin.py` file, if
 any. This is a good place to put convenience functions you write that you
-want readily accessible. See examples <a href="#functions">below</a>.
+want readily accessible. The file
+[example-functions.py](example-functions.py) has some functions that give a
+flavor of how you can add functionality to `daudin`. I have all these in my
+`~/.daudin.py` file.
 
 Use the `--noInit` argument when invoking `daudin` to disable loading the
 init file.
 
-Use the special `%r` (reload) command to re-read your start-up file.
+Use the special `%r` (reload) command to re-read your init file.
 
 ## Exiting daudin
 
@@ -470,14 +532,6 @@ There are `--debug` and `--tracebacks` command-line options that can be
 given on `daudin` invocation to immediately enable debugging and traceback
 printing.
 
-<a id="functions"></a>
-## Initialization functions
-
-The file [example-functions.py](example-functions.py) has some functions
-that give a flavor of how you can add functionality to `daudin`. I have all
-these in my `~/.daudin.py` start-up file (described <a
-href="#start-up">above</a>) so they are always available.
-
 ## Bugs
 
 I don't know why, but when I run `ls` alone on a line a TAB is in the
@@ -565,26 +619,13 @@ straightforward to put together due to Python's strong support for parsing,
 compiling, evaluating, and execing Python code and the nice
 [subprocess](https://docs.python.org/3.7/library/subprocess.html)
 library. The rest was just glue and a REPL loop.  An initial working
-version was about 280 lines of code (now up to 384) and could be written in
-one evening. The code is still quite ugly and brittle (no tests, various
-exceptions will probably still cause `daudin` to exit). It's also not going
-to be great at handling massive outputs.  But it works fine as an initial
-proof of concept.
+version was about 280 lines of code and could be written in one evening.
+The code is still quite ugly and brittle (only a few tests and various
+exceptions are either not handled as well as they could be or may even
+cause `daudin` to exit). But it works fine as an initial proof of concept.
 
-I find it interesting that it feels like it generalizes my RPN calculator
-and `pystdin` (both mentioned above). E.g., doing something simple to
-standard input can be written like:
-
-```python
->>> ls | for i in _: print(i[:3])
-... 
-Mak
-REA
-pys
-set
-she
-tes
-```
+I find it interesting to note that it feels like `daudin` generalizes my
+RPN calculator and `pystdin` (both mentioned above).
 
 I'm going to try using `daudin` for real and see what kinds of additional
 helper functions I end up adding and how things go in general.  It's easy
@@ -606,10 +647,11 @@ Here are some concrete things I'd like to (possibly) add
   one for each command. That would allow persistent shell variables. `cd`
   commands could be run simultaneously in both shells.
 * Add some way to deal with standard error?
-* Some of what might be wanted with `stdin` can be done with tee.
+* Some of what might also be wanted in a pipeline with `_` can be done with tee.
 * Make it so code can return `IGNORE` to explicitly preserve the pipeline.
 * Guess at auto-indent level for incomplete commands.
 * Add a specially-named function that (if defined) is used to produce the
   prompt.
 * Add a specially-named function that (if defined) run after each command
   (or command-line).
+* Add variable export.

@@ -1,3 +1,7 @@
+`0.0.5` Sunday Oct 13, 2019
+
+Improved `README.md`.
+
 `0.0.4` Sunday Oct 13, 2019
 
 Updated `README.md`.
