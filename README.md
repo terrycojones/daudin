@@ -21,6 +21,7 @@ Contents:
 <a href="#pipeline-python-execution">Pipeline execution</a> &middot;
 <a href="#shell-execution">Shell execution</a> &middot;
 <a href="#debugging">Debugging</s> &middot;
+<a href="#version">Version</a> &middot;
 <a href="#background">Background</a> &middot;
 <a href="#todo">TODO</a>.
 
@@ -588,6 +589,17 @@ It's worth pointing out that none of these special commands is actually
 needed. They're just syntactic sugar to make some actions easier. Their
 effects can all be achieved using regular Python inside `daudin` (usually
 via `self`), if you know what you're doing.
+
+<a id="version"></a>
+## Version
+
+To get the `daudin` version:
+
+```python
+>>> import daudinlib
+>>> daudinlib.__version__
+0.0.7
+```
 
 <a id="background"></a>
 ## Background & thanks
