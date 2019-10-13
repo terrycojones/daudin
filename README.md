@@ -278,7 +278,7 @@ directly into another command, use two pipe symbols:
 The above could instead be piped into the
 [sus](https://github.com/terrycojones/daudin/blob/master/example-functions.py#L18)
 function I have in my `~/.daudin.py` file (see <a href="#init-file">Init
-file</a>) for details on this).  The `sus` Python function does the typical
+file</a> for details on this).  The `sus` Python function does the typical
 shell `sort | uniq -c | sort -nr` trick for finding the most common inputs:
 
 ```python
