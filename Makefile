@@ -6,7 +6,7 @@ test:
 	env PYTHONPATH=. pytest
 
 flake8:
-	flake8 *.py */*.py
+	flake8 daudin */*.py
 
 clean:
 	find . -name '*.pyc' -print0 | $(XARGS) -0 rm

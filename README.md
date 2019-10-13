@@ -150,8 +150,8 @@ a b c
 3
 ```
 
-You can also change directories in the middle of a pipeline (<a
-href="#cd">see below</a>).
+You can also change directories in the middle of a pipeline (see <a
+href="#cd">Changing directory</a> below).
 
 You can put comments into the middle of a pipeline
 
@@ -203,8 +203,8 @@ The above pipeline can be immediately continued:
 ```
 
 Here's another example where two `|` symbols are needed to terminate the
-Python. Firstly, this command is terminated by an extra empty command (on
-the line whose prompt is `...`):
+Python. In the following, the Python command is terminated by an extra
+empty command (on the line whose prompt is `...`):
 
 ```python
 >>> ls | for i in _: print(i[:3])
@@ -222,10 +222,10 @@ set
 tes
 ```
 
-To pipe that directly into another command, use `||`:
+To pipe that directly into another command, use two pipe symbols:
 
 ```python
->>> ls | for i in _: print(i[:3]) || wc -l
+>>> ls | for i in _: print(i[:3]) | | wc -l
 11
 ```
 
@@ -236,7 +236,7 @@ file</a>) for details on this).  The `sus` Python function does the typical
 shell `sort | uniq -c | sort -nr` trick for finding the most common inputs:
 
 ```python
->>> ls | for i in _: print(i[:3]) || sus()
+>>> ls | for i in _: print(i[:3]) | | sus()
 3 dau
 1 CHA
 1 LIC
@@ -250,7 +250,7 @@ shell `sort | uniq -c | sort -nr` trick for finding the most common inputs:
 
 As above, the `||` is needed in order to provide an empty command (the
 zero-length string between the pipe symbols) to terminate the Python `for`
-block.
+block. The space between the pipe symbol is optional.
 
 ### Undo in a pipeline
 
@@ -260,7 +260,8 @@ restore it to its former value, you can undo with `%u`.
 There is only a single undo at the moment. This could obviously be
 improved, and a redo command could be added.
 
-You can of course always save the current pipeline value into a variable
+You can of course always save the current pipeline value into a Python
+variable:
 
 ```python
 >>> echo a b c
