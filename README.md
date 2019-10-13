@@ -126,7 +126,6 @@ UNIX commands produce lists of strings in `_`:
 
 So you need to use `_[0]` if you just want the first line of output:
 
-
 ```python
 >>> def triple(x):
 ...   return int(x) * 3
@@ -145,6 +144,26 @@ Here's the same thing, but with `cat` reading from the terminal:
 a b c
 ^D
 9
+```
+
+You can really mix things up (UNIX, Python, UNIX, Python):
+
+```python
+>>> seq 0 9 | map(lambda x: 2 ** int(x), _) | sum(_)
+1023
+>>> seq 0 9 | list(map(lambda x: 2 ** int(x), _)) | tee /tmp/powers-of-two | sum(map(int, _))
+1023
+>>> cat /tmp/powers-of-two
+1
+2
+4
+8
+16
+32
+64
+128
+256
+512
 ```
 
 You can hit ENTER in the middle of a pipeline without disrupting it. So
