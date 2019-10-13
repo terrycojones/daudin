@@ -6,18 +6,40 @@ The aim is to provide an interactive shell that is as convenient to use as
 the regular shell (in particular providing pipelines) but which has Python
 as its programming language.
 
+Contents:
+<a href="#installation">Installation</a> &middot;
+<a href="#usage">Usage</a> &middot;
+<a href="#examples">Examples</a> &middot;
+<a href="#pipelines">Pipelines</a> &middot;
+<a href="#cd">Changing directory</a> &middot;
+<a href="#command-substitution">Command substitution</a> &middot;
+<a href="#readline">Readline</a> &middot;
+<a href="#init-file">Init file</a> &middot;
+<a href="#prompts">Prompts</a> &middot;
+<a href="#exiting">Exiting</a> &middot;
+<a href="#command-interpretation">Command interpretation</a> &middot;
+<a href="#pipeline-python-execution">Pipeline execution</a> &middot;
+<a href="#shell-execution">Shell execution</a> &middot;
+<a href="#debugging">Debugging</s> &middot;
+<a href="#background">Background</a> &middot;
+<a href="#todo">TODO</a>.
+
+
+<a id="installation"></a>
 ## Installation
 
 ```sh
 $ pip install daudin
 ```
 
+<a id="usage"></a>
 ## Usage
 
 Run `daudin` and enter commands interactively.
 
 Should run fine on a recent version of Python 3 (I am using 3.7.3).
 
+<a id="examples"></a>
 ### Examples
 
 The following examples all assume you have already run `daudin` (which
@@ -55,10 +77,11 @@ But in fact it's Python all the way down:
 12.566370614359172
 ```
 
+<a id="pipelines"></a>
 ## Pipelines
 
 Shell pipelines are super cool. As you've seen above `daudin`, has
-pipelines that look just like the shell. But with a few added extras.
+pipelines that look just like the shell. But there are a few added extras.
 
 Firstly, you can mix Python and the shell in a `daudin` pipeline:
 
@@ -84,7 +107,7 @@ kept in a variable named `_`, which may be of any type:
 Hello
 ```
 
-UNIX commands produce lists of strings:
+UNIX commands produce lists of strings in `_`:
 
 ```python
 >>> ls | for name in _:
@@ -111,8 +134,7 @@ So you need to use `_[0]` if you just want the first line of output:
 9
 ```
 
-Here's a similar command, wtih `cat` reading from the terminal, as
-normal.
+Here's the same thing, but with `cat` reading from the terminal:
 
 ```python
 >>> def triple(x):
@@ -150,8 +172,8 @@ a b c
 3
 ```
 
-You can also change directories in the middle of a pipeline (see <a
-href="#cd">Changing directory</a> below).
+Similarly, you can also change directories in the middle of a pipeline (see
+<a href="#cd">Changing directory</a> below).
 
 You can put comments into the middle of a pipeline
 
@@ -177,29 +199,34 @@ a following command:
 >>> ls | for name in _:
 ...   prefix = name.split('.')[0]
 ...   print(len(prefix), prefix.upper()) | | sort
+17 EXAMPLE-FUNCTIONS
 4 TEST
 5 SETUP
 6 DAUDIN
 6 README
+7 LICENSE
 8 MAKEFILE
+9 CHANGELOG
 9 DAUDINLIB
-17 EXAMPLE-FUNCTIONS
 ```
 
 There are two `|` symbols before the `sort` above because an empty command
 is necessary to terminate the compound Python command.
 
-The above pipeline can be immediately continued:
+The output above should have been numerically sorted. The pipeline can be
+immediately continued using a leading `|`:
 
 ```python
->>> | sort -nr
-17 EXAMPLE-FUNCTIONS
-9 DAUDINLIB
-8 MAKEFILE
-6 README
-6 DAUDIN
-5 SETUP
+>>> | sort -n
 4 TEST
+5 SETUP
+6 DAUDIN
+6 README
+7 LICENSE
+8 MAKEFILE
+9 CHANGELOG
+9 DAUDINLIB
+17 EXAMPLE-FUNCTIONS
 ```
 
 Here's another example where two `|` symbols are needed to terminate the
@@ -208,21 +235,19 @@ empty command (on the line whose prompt is `...`):
 
 ```python
 >>> ls | for i in _: print(i[:3])
-...
 CHA
 LIC
 Mak
 REA
 dau
 dau
-dau
-dis
 exa
 set
 tes
 ```
 
-To pipe that directly into another command, use two pipe symbols:
+As in the previous example, to pipe the compound Python command output
+directly into another command, use two pipe symbols:
 
 ```python
 >>> ls | for i in _: print(i[:3]) | | wc -l
@@ -231,7 +256,7 @@ To pipe that directly into another command, use two pipe symbols:
 
 The above could instead be piped into the
 [sus](https://github.com/terrycojones/daudin/blob/master/example-functions.py#L18)
-function I have in my `~/.daudin.py` file (see <a href="#start-up">Init
+function I have in my `~/.daudin.py` file (see <a href="#init-file">Init
 file</a>) for details on this).  The `sus` Python function does the typical
 shell `sort | uniq -c | sort -nr` trick for finding the most common inputs:
 
@@ -324,6 +349,7 @@ I am file x
 The above could also have used `ls -1` (to make `ls` print its file names
 one per line) and then the `_[0].split()` could have instead just been `_`.
 
+<a id="command-substitution"></a>
 ## Command substitution
 
 In regular shells there is a way to have part of a command line executed in
@@ -370,12 +396,17 @@ Same thing in `daudin`:
 >>> month = sh('date').split()[1]
 >>> month
 Oct
-# Using cut to have the shell do all the work (note the use of \| in the
-# following to ensure that daudin doesn't incorrectly split the command
-# into two pieces):
+```
+
+You could also have the shell do all the work via `sh()` but to do that
+you'll need to use `\|` in the to ensure that `daudin` doesn't incorrectly
+split the shell command into two pieces:
+
+```python
 >>> month = sh('date \| cut -f2 -d" "')
 ```
 
+<a id="readline"></a>
 ## Readline
 
 `daudin` uses the [GNU](https://www.gnu.org/)
@@ -385,7 +416,7 @@ it easy to edit and re-enter commands. The history is stored in
 
 Filename completion in `daudin` is provided via `readline`.
 
-<a id="start-up"></a>
+<a id="init-file"></a>
 ## Init file
 
 `daudin` will initially read and execute code in a `~/.daudin.py` file, if
@@ -400,12 +431,26 @@ init file.
 
 Use the special `%r` (reload) command to re-read your init file.
 
+<a id="prompts"></a>
+## Changing prompts
+
+There are `--ps1` and `--ps2` options that can be given on the command line
+to `daudin`. You can also set `sys.ps1` or `sys.ps2` while running:
+
+```python
+>>> sys.ps1 = '% '
+% 3 + 4
+7
+```
+
+<a id="exiting"></a>
 ## Exiting daudin
 
 Just use control-d as you would in any other shell.  Or you can call a
 Python builtin function `exit()` or `quit()`, or use `sys.exit()` (all of
 which can be given an `int` exit status).
 
+<a id="command-interpretation"></a>
 ## How commands are interpreted
 
 `daudin` first tries to run a command with
@@ -479,17 +524,21 @@ href="#debugging">see below for more detail</a>) to dig into what happened:
                     Shell returned '/bin/sh: 1: Syntax error: word unexpected (expecting ")")\n'
 ```
 
-## Changing prompts
+<a id="pipeline-python-execution"></a>
+## Pipeline Python execution environment
 
-There are `--ps1` and `--ps2` options that can be given on the command line
-to `daudin`. You can also set `sys.ps1` or `sys.ps2` while running:
+When a Python command is run, it has access to the following:
 
-```python
->>> sys.ps1 = '% '
-% 3 + 4
-7
-```
+* `cd` - a function for changing directory.
+* `sh` - a function for running a shell command.
+* `self` - the instance of `daudinlib.pipeline.Pipeline`. This allows full
+  access to the internals of the running `daudin` shell. So you can do
+  things like `self.debug = True`, and anything else you can think of.
 
+In addition, the variables or functions you define or `import` in your
+`~/.daudin.py` are also present.
+
+<a id="shell-execution"></a>
 ## Shell execution environment
 
 When a shell command is the final command on a line, it is run in a
@@ -498,16 +547,6 @@ check to see if they're running with standard output connected to a
 terminal will think they are. In that case, a command like `git status` or
 `ls --color=auto` will produce colored output that will be correctly
 displayed.
-
-## Pipeline execution environment
-
-When a Python command is run, it has access to the following variables
-
-* `cd` - a function for changing directory.
-* `sh` - a function for running a shell command.
-* `self` - the instance of `daudinlib.pipeline.Pipeline`. This allows full
-  access to the internals of the running `daudin` shell. So you can do
-  things like `self.debug = True`, and anything else you can think of.
 
 <a id="debugging"></s>
 ## Debugging
@@ -533,17 +572,24 @@ There are `--debug` and `--tracebacks` command-line options that can be
 given on `daudin` invocation to immediately enable debugging and traceback
 printing.
 
-## Bugs
+<a id="special-commands"></a>
+## Special commands
 
-I don't know why, but when I run `ls` alone on a line a TAB is in the
-output. The `ls` runs in a pseudo-tty and it seems that a TAB really does
-come back from the master pty desciptor. So I must be doing something wrong
-somewhere. This doesn't apply when `ls` is piped into another command
-because in that case a pseudo-tty isn't used. The ls output prints just
-fine with the embedded TAB, but how did it get there?
+All special `%` commands have been described above, but here's list of them
+in one place for reference:
 
-The terminal sometimes gets left in a weird state.
+* `%cd` - change directory.
+* `%d` - toggle debug output.
+* `%r` - reload init file.
+* `%t` - toggle traceback output (also turns on debugging output).
+* `%u` - undo the last change to the `_` pipeline variable.
 
+It's worth pointing out that none of these special commands is actually
+needed. They're just syntactic sugar to make some actions easier. Their
+effects can all be achieved using regular Python inside `daudin` (usually
+via `self`), if you know what you're doing.
+
+<a id="background"></a>
 ## Background & thanks
 
 Daudin is the surname of
@@ -639,7 +685,7 @@ Thanks for reading, and thanks Derek & Nelson.
 Terry Jones (@terrycojones)<br>
 terry@jon.es
 
-
+<a id="todo"></a>
 ## TODO
 
 Here are some concrete things I'd like to (possibly) add

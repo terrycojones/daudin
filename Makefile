@@ -9,6 +9,7 @@ flake8:
 	flake8 daudin */*.py
 
 clean:
+	rm -fr daudin.egg-info dist
 	find . -name '*.pyc' -print0 | $(XARGS) -0 rm
 	find . -name '*~' -print0 | $(XARGS) -0 rm
 	find . -name '.pytest_cache' -print0 | $(XARGS) -0 rm -r
