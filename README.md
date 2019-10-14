@@ -354,21 +354,14 @@ change directory in the middle of a pipeline:
 
 ```python
 >>> mkdir /tmp/a /tmp/b
->>> cd('/tmp/a')
+>>> %cd /tmp/a
 >>> touch x y z
->>> ls
-x  y  z
->>> cd('/tmp/b')
->>> for i in _[0].split():
+>>> ls | %cd /tmp/b | for i in _:
 ...   with open(i + '.txt', 'w') as fp:
 ...     print('I am file', i, file=fp)
-...
 >>> cat x.txt
 I am file x
 ```
-
-The above could also have used `ls -1` (to make `ls` print its file names
-one per line) and then the `_[0].split()` could have instead just been `_`.
 
 <a id="command-substitution"></a>
 ## Command substitution

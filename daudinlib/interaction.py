@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import sys
 import traceback
+import shlex
 from os.path import expanduser
 
 from daudinlib.parse import lineSplitter
@@ -79,11 +80,20 @@ class REPL():
             if strippedCommand == '%cd':
                 dir_ = expanduser('~')
             else:
-                dir_ = command.lstrip().split(None, 1)[1]
-            try:
-                pipeline.cd(dir_)
-            except FileNotFoundError:
-                print('No such directory %r' % dir_, file=sys.stderr)
+                args = shlex.split(command[3:])
+                if len(args) > 1:
+                    print('Only one argument can be given to cd.',
+                          file=sys.stderr)
+                    dir_ = None
+                else:
+                    dir_ = args[0]
+
+            if dir_ is not None:
+                try:
+                    pipeline.cd(dir_)
+                except FileNotFoundError:
+                    print('No such directory %r' % dir_, file=sys.stderr)
+
             return True
 
         if strippedCommand == '%d':

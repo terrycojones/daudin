@@ -1,3 +1,8 @@
+`0.0.12` Monday Oct 13, 2019
+
+Improved `README.md`. Use `shlex.split` to extract argument in `%cd`
+command, to allow quoting, spaces in dir names, etc.
+
 `0.0.11` Sunday Oct 13, 2019
 
 Improved `README.md`.
