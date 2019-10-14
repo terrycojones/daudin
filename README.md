@@ -359,6 +359,8 @@ change directory in the middle of a pipeline:
 >>> ls | %cd /tmp/b | for i in _:
 ...   with open(i + '.txt', 'w') as fp:
 ...     print('I am file', i, file=fp)
+>>> pwd
+/tmp/b
 >>> cat x.txt
 I am file x
 ```
