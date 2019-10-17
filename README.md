@@ -430,7 +430,9 @@ split the shell command into two pieces:
 it easy to edit and re-enter commands. The history is stored in
 `~/.daudin_history`.
 
-Filename completion in `daudin` is provided via `readline`.
+`daudin` provides file and directory name completion, as well as Python
+completion (the latter using
+[rlcompleter](https://docs.python.org/3.8/library/rlcompleter.html)).
 
 <a id="init-file"></a>
 ## Init file

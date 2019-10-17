@@ -1,3 +1,9 @@
+`0.0.13` Thursday Oct 17, 2019
+
+Added readline completion of Python symbols following
+[suggestion from @reckoner](https://github.com/terrycojones/daudin/issues/7).
+Documented this in `README.md`.
+
 `0.0.12` Monday Oct 13, 2019
 
 Improved `README.md`. Use `shlex.split` to extract argument in `%cd`
