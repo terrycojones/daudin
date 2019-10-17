@@ -34,8 +34,8 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    setupReadline()
     pipeline = Pipeline(loadInitFile=args.loadInitFile)
     if args.tracebacks:
         pipeline.toggleTracebacks()
+    setupReadline(pipeline.local)
     REPL(pipeline=pipeline, ps1=args.ps1, ps2=args.ps2).interact()

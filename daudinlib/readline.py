@@ -1,20 +1,34 @@
+import rlcompleter
 import readline
 import os
+from itertools import count
 import glob
 
 
-class Completor():
+class Completer:
+
+    def __init__(self, local):
+        self.local = local
 
     def complete(self, text, state):
         if state == 0:
             self.completions = []
+            append = self.completions.append
             for path in glob.glob(text + '*'):
                 if os.path.isdir(path):
                     if not path.endswith(os.sep):
                         path += os.sep
                 else:
                     path += ' '
-                self.completions.append(path)
+                append(path)
+
+            pycompleter = rlcompleter.Completer(namespace=self.local).complete
+            for i in count():
+                completion = pycompleter(text, i)
+                if completion is None:
+                    break
+                else:
+                    append(completion)
 
         try:
             return self.completions[state]
@@ -22,7 +36,7 @@ class Completor():
             return None
 
 
-def setupReadline():
+def setupReadline(local):
     """Initialize the readline library and command history.
 
     @return: A C{bool} to indicate whether standard input is a terminal
@@ -35,7 +49,7 @@ def setupReadline():
 
     readline.parse_and_bind('tab: complete')
     readline.set_completer_delims(' \t\n')
-    readline.set_completer(Completor().complete)
+    readline.set_completer(Completer(local).complete)
 
     # Readline code from https://docs.python.org/3.7/library/readline.html
     histfile = os.path.join(os.path.expanduser('~'), '.daudin_history')
