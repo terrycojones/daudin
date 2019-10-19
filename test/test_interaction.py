@@ -7,6 +7,15 @@ from daudinlib.pipeline import Pipeline
 
 class TestREPL(TestCase):
     """Test the REPL class."""
+    def setup_method(self, method):
+        try:
+            del sys.ps1
+        except AttributeError:
+            pass
+        try:
+            del sys.ps2
+        except AttributeError:
+            pass
 
     def testSetPrompts(self):
         """
@@ -220,6 +229,15 @@ class TestREPL(TestCase):
 
 class TestREADME(TestCase):
     """Test the examples from the README."""
+    def setup_method(self, method):
+        try:
+            del sys.ps1
+        except AttributeError:
+            pass
+        try:
+            del sys.ps2
+        except AttributeError:
+            pass
 
     def testAreaFunction(self):
         """Define an area function and call it."""

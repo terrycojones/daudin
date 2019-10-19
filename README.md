@@ -466,6 +466,16 @@ to `daudin`. You can also set `sys.ps1` or `sys.ps2` while running:
 7
 ```
 
+You can also set `sys.ps1` or `sys.ps2` to be a function that returns a
+string. In the [example-functions.py](example-functions.py) file mentioned
+above, you can see `sys.ps1` assigned to a simple function returning a
+string containing the basename of the current working directory (or `~` if
+you are in your home directory) plus the name of the current `git` branch
+(if any). The string also contains escape sequences to color the prompt.
+This is all extremely simplistic and for now is just an example. It would
+make sense to port a more sophisticated prompt package from a shell to
+Python and incorporate that.
+
 <a id="exiting"></a>
 ## Exiting daudin
 

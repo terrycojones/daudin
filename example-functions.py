@@ -1,12 +1,34 @@
 import sys
 from operator import itemgetter
 from collections import defaultdict
-
+from os import getcwd, environ
+from os.path import basename
 from math import pi, e
-
-from os import getcwd
-
+from subprocess import run
 from pprint import pprint
+
+
+def _myPrompt():
+    BLUE = '\033[94m'
+    GREEN = '\033[92m'
+    NORM = '\033[0m'
+
+    cwd = getcwd()
+    cwdStr = '%s%s%s' % (
+        GREEN,
+        '~' if cwd == environ.get('HOME') else basename(cwd),
+        NORM)
+
+    # Note that if git fails to find a repo, it prints to stderr and exits
+    # non-zero (both of which we ignore).
+    status = run('git symbolic-ref HEAD --short', shell=True,
+                 universal_newlines=True, capture_output=True).stdout.strip()
+    gitStr = '%s(%s)%s ' % (BLUE, status, NORM) if status else ''
+
+    return '%s%s>>> ' % (cwdStr, gitStr)
+
+
+sys.ps1 = _myPrompt
 
 
 def pp():

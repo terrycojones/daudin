@@ -16,11 +16,13 @@ if __name__ == '__main__':
 
     parser.add_argument(
         '--ps1', default=REPL.DEFAULT_PS1,
-        help='The primary shell prompt.')
+        help=("The primary shell prompt. Note that this value will be "
+              "ignored if the user's init file (if any) sets sys.ps1."))
 
     parser.add_argument(
         '--ps2', default=REPL.DEFAULT_PS2,
-        help='The secondary shell prompt.')
+        help=("The secondary shell prompt. Note that this value will be "
+              "ignored if the user's init file (if any) sets sys.ps2."))
 
     parser.add_argument(
         '--shell',

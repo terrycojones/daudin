@@ -10,14 +10,35 @@ from daudinlib.pipeline import Pipeline
 
 
 class REPL():
+    """Manage an interactive daudin session.
+
+    @param pipeline: A C{daudinlib.pipeline.Pipeline} instance.
+    @param ps1: A C{str} to use as the primary prompt, or a no-argument
+        function that returns a C{str}. Note that the passed value will
+        only be used if C{sys.ps1} is not already set. The value may have
+        already been set when reading the user's daudin init file.
+    @param ps2: A C{str} to use as the secondary prompt, or a no-argument
+        function that returns a C{str}. Note that the passed value will
+        only be used if C{sys.ps2} is not already set. The value may have
+        already been set when reading the user's daudin init file.
+    """
 
     DEFAULT_PS1 = '>>> '
     DEFAULT_PS2 = '... '
 
     def __init__(self, pipeline=None, ps1=DEFAULT_PS1, ps2=DEFAULT_PS2):
         self.pipeline = pipeline or Pipeline()
-        sys.ps1 = self.prompt = ps1
-        sys.ps2 = ps2
+        try:
+            sys.ps1
+        except AttributeError:
+            sys.ps1 = ps1
+
+        try:
+            sys.ps2
+        except AttributeError:
+            sys.ps2 = ps2
+
+        self.prompt = sys.ps1
 
     def reset(self):
         self.pipeline.reset()
@@ -25,8 +46,12 @@ class REPL():
 
     def _readStdin(self):
         while True:
+            if callable(self.prompt):
+                prompt = self.prompt()
+            else:
+                prompt = self.prompt
             try:
-                text = input(self.prompt)
+                text = input(prompt)
             except KeyboardInterrupt:
                 print('^C', file=sys.stderr)
                 self.reset()

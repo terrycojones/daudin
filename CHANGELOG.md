@@ -1,3 +1,8 @@
+`0.0.15` Saturday Oct 19, 2019
+
+Added example function for setting a colored prompt showing the current
+working directory and git branch. This is extremely simplistic!
+
 `0.0.14` Saturday Oct 19, 2019
 
 Added `--shell` command line option to control the underlying shell used
