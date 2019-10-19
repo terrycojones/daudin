@@ -51,8 +51,8 @@ if __name__ == '__main__':
         except KeyError:
             shell = [environ.get('SHELL', '/bin/sh'), '-c']
 
-    pipeline = Pipeline(loadInitFile=args.loadInitFile, shell=shell)
-    if args.tracebacks:
-        pipeline.toggleTracebacks()
+    pipeline = Pipeline(
+        debug=args.debug, printTracebacks=args.tracebacks,
+        loadInitFile=args.loadInitFile, shell=shell)
     setupReadline(pipeline.local)
     REPL(pipeline=pipeline, ps1=args.ps1, ps2=args.ps2).interact()

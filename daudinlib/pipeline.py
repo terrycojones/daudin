@@ -56,23 +56,22 @@ class Pipeline:
 
     IGNORE = object()
 
-    def __init__(self, outfp=sys.stdout, errfp=sys.stderr, loadInitFile=True,
-                 shell=None):
+    def __init__(self, outfp=sys.stdout, errfp=sys.stderr, debug=False,
+                 printTracebacks=False, loadInitFile=True, shell=None):
         self.outfp = outfp
         self.errfp = errfp
+        self.debug = debug
+        self.printTracebacks = printTracebacks
         self.shell = shell or ['/bin/sh', '-c']
         self.stdin = None
         self.lastStdin = None
         self.stdout = None
         self.pendingText = ''
-        self.debug = False
-        self.printTracebacks = False
         self.initFile = join(expanduser('~'), '.daudin.py')
-        self.lastResultIsList = None
-        self.local = {}
+        self.lastResultIsList = False
+        self.local = self._getLocal()
         if loadInitFile:
             self.loadInitFile()
-        self.initializeLocal()
         self.inPipeline = False
 
     @property
@@ -88,15 +87,20 @@ class Pipeline:
         if exists(self.initFile):
             exec(open(self.initFile).read(), self.local)
             return True
-        return False
+        else:
+            return False
 
-    def initializeLocal(self):
-        """Update the C{self.local} dict to be used with eval/exec."""
-        for key, value in (('self', self), ('sh', self.sh), ('cd', self.cd)):
-            self.local.setdefault(key, value)
+    def _getLocal(self):
+        """Prepare a dict to be used with eval/exec."""
+        return {
+            'self': self,
+            'sh': self.sh,
+            'cd': self.cd,
+            '_': self.stdin,
+        }
 
     def run(self, command, commandNumber=1, nCommands=1):
-        self._debug('Processing %r.' % command)
+        self._debug('--> Processing %r.' % command)
         self.lastStdin = self.stdin
         self.lastResultIsList = False
         strippedCommand = command.strip()
@@ -144,9 +148,10 @@ class Pipeline:
             return False, False
 
         self._debug('Trying eval %r.' % (strippedCommand,))
+        self._debug('self.stdin is %r.' % (self.stdin,))
+        self.local['_'] = self.stdin
         try:
             with newStdout() as so:
-                self.local['_'] = self.stdin
                 result = eval(strippedCommand, self.local)
         except Exception as e:
             self._debug('Could not eval: %s.' % e)
@@ -176,6 +181,7 @@ class Pipeline:
             if result is self.IGNORE:
                 print_ = False
             else:
+                self.lastStdin = self.stdin
                 self.stdin = result
 
             return True, print_
@@ -223,9 +229,11 @@ class Pipeline:
                     if stdout.endswith('\n'):
                         stdout = stdout[:-1]
                     if stdout.find('\n') > -1:
+                        self.lastStdin = self.stdin
                         self.stdin = stdout.split('\n')
                         self.lastResultIsList = True
                     else:
+                        self.lastStdin = self.stdin
                         self.stdin = stdout
                 else:
                     print_ = False
@@ -247,12 +255,14 @@ class Pipeline:
         if result:
             if result.endswith('\n'):
                 result = result[:-1]
+            self.lastStdin = self.stdin
             self.stdin = result.split('\n')
             # Set lastResultIsList to False because the result has
             # already been printed in its non-list form. So next time
             # we print it we want to see the list.
             self.lastResultIsList = False
         else:
+            self.lastStdin = self.stdin
             self.stdin = []
 
         return True, False
@@ -390,10 +400,10 @@ class Pipeline:
         self.stdin = self.lastStdin
 
     def reset(self):
-        self.lastStdin = self.stdin
         self.stdin = None
+        self.lastStdin = None
         self.pendingText = ''
-        self.lastResultIsList = None
+        self.lastResultIsList = False
         self.inPipeline = False
 
     def _debug(self, *args, **kwargs):
