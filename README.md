@@ -65,6 +65,11 @@ drwxrwxr-x 3 terry terry  4096 Oct 12 22:48 test
 hello there
 ```
 
+(If regular shell commands are slow to execute, it's probably because your
+regular shell is slow to start. Change the default underlying shell used by
+`daudin` to something faster, as described <a
+href="#shell-execution">below</a>.)
+
 But in fact it's Python all the way down:
 
 ```python
