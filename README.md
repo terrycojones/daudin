@@ -586,11 +586,23 @@ You can also change the shell in use during a `daudin` session:
 5.0.3(1)-release
 >>> echo testing-{1,2,3}
 testing-1 testing-2 testing-3
+
 >>> self.shell = ['/bin/zsh, '-c']
 >>> echo $ZSH_VERSION
 5.5.1
 >>> echo {2015..2019}
 2015 2016 2017 2018 2019
+
+>>> self.shell = ['/usr/local/bin/fish, '-c']
+>>> # Slow!!
+>>> echo $FISH_VERSION
+3.0.0
+>>> echo testing-{1,2,3}
+testing-1 testing-2 testing-3
+
+>>> self.shell = ['/bin/sh, '-c']
+>>> echo testing-{1,2,3}
+testing-{1,2,3}
 ```
 
 Note that this shell is only used by `daudin` when it encounters shell
