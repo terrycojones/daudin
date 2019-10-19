@@ -56,9 +56,11 @@ class Pipeline:
 
     IGNORE = object()
 
-    def __init__(self, outfp=sys.stdout, errfp=sys.stderr, loadInitFile=True):
+    def __init__(self, outfp=sys.stdout, errfp=sys.stderr, loadInitFile=True,
+                 shell=None):
         self.outfp = outfp
         self.errfp = errfp
+        self.shell = shell or ['/bin/sh', '-c']
         self.stdin = None
         self.lastStdin = None
         self.stdout = None
@@ -234,8 +236,9 @@ class Pipeline:
 
     def _tryShell(self, command, print_):
         self._debug('Trying shell %r with stdin %r.' % (command, self.stdin,))
+        args = self.shell + [command]
         try:
-            result = self.sh(command, print_=print_)
+            result = self.sh(args, print_=print_)
         except CalledProcessError as e:
             print('Process error: %s' % e, file=sys.errfp)
             return False, False

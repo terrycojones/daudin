@@ -559,6 +559,39 @@ In addition, the variables or functions you define or `import` in your
 <a id="shell-execution"></a>
 ## Shell execution environment
 
+By default, `daudin` will use your `SHELL` environment variable (with a
+`-c` argument) as the shell to execute non-Python commands with. You can
+specify another shell on the command line via the `--shell` argument, e.g.,
+
+```sh
+$ daudin --shell '/bin/bash -c'
+```
+
+or by setting an environment variable, `DAUDIN_SHELL` to a value such as
+`/bin/bash -c`.  If you normally use a shell with slow start-up, and invoke
+`daudin` from that shell, you will certainly want to use one of these
+options to set the shell that `daudin` uses, otherwise shell commands
+executed by `daudin` will all be slow.
+
+You can also change the shell in use during a `daudin` session:
+
+```python
+>>> self.shell = ['/bin/bash', '-c']
+>>> echo testing-{1,2,3}
+testing-1 testing-2 testing-3
+>>> self.shell = ['/bin/zsh, '-c']
+>>> echo {2015..2019}
+2015 2016 2017 2018 2019
+```
+
+Note that this shell is only used by `daudin` when it encounters shell
+commands on a command line, not when you use the built-in `sh` command.
+When using `sh`, you can provide whatever arguments you like, either as a
+string or a list of strings, to be passed to `subprocess.run` (or
+`subprocess.Pipe` in the case of a pseudotty - see below).
+
+### Pseudottys
+
 When a shell command is the final command on a line, it is run in a
 [pseudotty](https://en.wikipedia.org/wiki/Pseudoterminal). So commands that
 check to see if they're running with standard output connected to a

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
+from os import environ
 import argparse
+import shlex
 
 from daudinlib.readline import setupReadline
 from daudinlib.interaction import REPL
@@ -21,6 +23,13 @@ if __name__ == '__main__':
         help='The secondary shell prompt.')
 
     parser.add_argument(
+        '--shell',
+        help=('The shell executable (and its initial argument(s)) that should '
+              'be used to execute UNIX commands. The default is $DAUDIN_SHELL '
+              'if set in your environment, else $SHELL -c if SHELL is set in '
+              'your environment, else /bin/sh -c.'))
+
+    parser.add_argument(
         '--noInit', action='store_false', default=True, dest='loadInitFile',
         help='If given, do not load the daudin start-up file (~/.daudin.py).')
 
@@ -34,7 +43,15 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    pipeline = Pipeline(loadInitFile=args.loadInitFile)
+    if args.shell:
+        shell = shlex.split(args.shell)
+    else:
+        try:
+            shell = shlex.split(environ['DAUDIN_SHELL'])
+        except KeyError:
+            shell = [environ.get('SHELL', '/bin/sh'), '-c']
+
+    pipeline = Pipeline(loadInitFile=args.loadInitFile, shell=shell)
     if args.tracebacks:
         pipeline.toggleTracebacks()
     setupReadline(pipeline.local)

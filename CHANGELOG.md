@@ -1,3 +1,8 @@
+`0.0.14` Saturday Oct 19, 2019
+
+Added `--shell` command line option to control the underlying shell used
+for UNIX commands.
+
 `0.0.13` Thursday Oct 17, 2019
 
 Added readline completion of Python symbols following
