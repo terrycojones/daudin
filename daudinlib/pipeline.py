@@ -57,12 +57,14 @@ class Pipeline:
     IGNORE = object()
 
     def __init__(self, outfp=sys.stdout, errfp=sys.stderr, debug=False,
-                 printTracebacks=False, loadInitFile=True, shell=None):
+                 printTracebacks=False, loadInitFile=True, shell=None,
+                 usePtys=True):
         self.outfp = outfp
         self.errfp = errfp
         self.debug = debug
         self.printTracebacks = printTracebacks
         self.shell = shell or ['/bin/sh', '-c']
+        self.usePtys = usePtys
         self.stdin = None
         self.lastStdin = None
         self.stdout = None
@@ -291,9 +293,14 @@ class Pipeline:
         else:
             stdin = None
 
-        run = self._shPty if print_ else self._sh
+        if print_ and self.usePtys:
+            result = self._shPty(stdin, *args, **kwargs)
+        else:
+            result = self._sh(stdin, *args, **kwargs)
+            if print_:
+                print(result, end='', file=self.outfp)
 
-        return run(stdin, *args, **kwargs)
+        return result
 
     def _sh(self, stdin, *args, **kwargs):
         """
@@ -317,9 +324,9 @@ class Pipeline:
         """
         self._debug('In _shPty, stdin is %r' % (stdin,))
 
-        # Detect if we're running under pytest, in which case stdin cannot
-        # be used.
-        pytest = 'pytest' in sys.modules
+        # Stdin cannot be manipulated if it's not a terminal or we're
+        # running under pytest.
+        stdinIsTty = os.isatty(0) and 'pytest' not in sys.modules
 
         # The following is (slightly) adapted from
         # https://stackoverflow.com/questions/41542960/\
@@ -327,11 +334,11 @@ class Pipeline:
         # Answer by https://stackoverflow.com/users/3555925/liao
 
         # save original tty setting then set it to raw mode
-        if not pytest:
+        if stdinIsTty:
             oldTty = termios.tcgetattr(sys.stdin)
 
         try:
-            if not pytest:
+            if stdinIsTty:
                 tty.setraw(sys.stdin.fileno())
 
             # Open a pseudo-terminal to interact with the subprocess.
@@ -355,10 +362,10 @@ class Pipeline:
                 os.write(process.stdin.fileno(), stdin.encode())
                 process.stdin.close()
 
-            if pytest:
-                readFds = [master_fd]
-            else:
+            if stdinIsTty:
                 readFds = [sys.stdin, master_fd]
+            else:
+                readFds = [master_fd]
 
             result = b''
             while process.poll() is None:
@@ -378,7 +385,7 @@ class Pipeline:
                         os.write(_originalStdout.fileno(), data)
 
         finally:
-            if not pytest:
+            if stdinIsTty:
                 # Restore tty settings.
                 termios.tcsetattr(sys.stdin, termios.TCSADRAIN, oldTty)
 

@@ -42,11 +42,6 @@ def setupReadline(local):
     @return: A C{bool} to indicate whether standard input is a terminal
         (and therefore interactive).
     """
-    if not os.isatty(0):
-        # Standard input is closed or is a pipe etc. So there's no user
-        # typing at us, and so no point in setting up readline.
-        return False
-
     readline.parse_and_bind('tab: complete')
     readline.set_completer_delims(' \t\n')
     readline.set_completer(Completer(local).complete)

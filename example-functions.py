@@ -14,7 +14,7 @@ def _myPrompt():
     NORM = '\033[0m'
 
     cwd = getcwd()
-    cwdStr = '%s%s%s' % (
+    cwdStr = '%s%s%s ' % (
         GREEN,
         '~' if cwd == environ.get('HOME') else basename(cwd),
         NORM)

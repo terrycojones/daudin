@@ -1,18 +1,23 @@
 #!/usr/bin/env python
 
-from os import environ
+import sys
+from os import environ, isatty
 import argparse
 import shlex
 
 from daudinlib.readline import setupReadline
-from daudinlib.interaction import REPL
+from daudinlib.interaction import REPL, Batch
 from daudinlib.pipeline import Pipeline
 
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        description='A Python shell')
+        description='A Python shell.')
+
+    parser.add_argument(
+        'scriptFiles', nargs='*', metavar='FILE',
+        help=('A file of commands to run non-interactively. Use "-" to '
+              'indicate reading from standard input.'))
 
     parser.add_argument(
         '--ps1', default=REPL.DEFAULT_PS1,
@@ -27,21 +32,25 @@ if __name__ == '__main__':
     parser.add_argument(
         '--shell',
         help=('The shell executable (and its initial argument(s)) that should '
-              'be used to execute UNIX commands. The default is $DAUDIN_SHELL '
-              'if set in your environment, else $SHELL -c if SHELL is set in '
-              'your environment, else /bin/sh -c.'))
+              'be used to execute UNIX commands. Default is "$DAUDIN_SHELL" '
+              'if DAUDIN_SHELL is set in your environment, else "$SHELL -c" '
+              'if SHELL is set in your environment, else "/bin/sh -c".'))
 
     parser.add_argument(
         '--noInit', action='store_false', default=True, dest='loadInitFile',
-        help='If given, do not load the daudin start-up file (~/.daudin.py).')
+        help='Do not load the ~/.daudin.py start-up file.')
+
+    parser.add_argument(
+        '--noPtys', action='store_false', default=True, dest='usePtys',
+        help='Do not run any shell commands in pseudo-ttys.')
 
     parser.add_argument(
         '--debug', action='store_true', default=False,
-        help='If given, start in debug mode.')
+        help='Start in debug mode.')
 
     parser.add_argument(
         '--tracebacks', action='store_true', default=False,
-        help='If given, print exception tracebacks (implies --debug).')
+        help='Print exception tracebacks (implies --debug).')
 
     args = parser.parse_args()
 
@@ -55,6 +64,18 @@ if __name__ == '__main__':
 
     pipeline = Pipeline(
         debug=args.debug, printTracebacks=args.tracebacks,
-        loadInitFile=args.loadInitFile, shell=shell)
-    setupReadline(pipeline.local)
-    REPL(pipeline=pipeline, ps1=args.ps1, ps2=args.ps2).interact()
+        loadInitFile=args.loadInitFile, shell=shell, usePtys=args.usePtys)
+
+    if args.scriptFiles:
+        for scriptFile in args.scriptFiles:
+            if scriptFile == '-':
+                REPL(pipeline=pipeline, ps1=args.ps1, ps2=args.ps2).run()
+            else:
+                with open(scriptFile) as fp:
+                    Batch(pipeline).run(fp)
+    else:
+        if isatty(0):
+            setupReadline(pipeline.local)
+            REPL(pipeline=pipeline, ps1=args.ps1, ps2=args.ps2).run()
+        else:
+            Batch(pipeline).run(sys.stdin)

@@ -16,6 +16,7 @@ Contents:
 <a href="#readline">Readline</a> &middot;
 <a href="#init-file">Init file</a> &middot;
 <a href="#prompts">Prompts</a> &middot;
+<a href="#more-usage">More on usage</a> &middot;
 <a href="#exiting">Exiting</a> &middot;
 <a href="#command-interpretation">Command interpretation</a> &middot;
 <a href="#pipeline-python-execution">Pipeline execution</a> &middot;
@@ -195,6 +196,22 @@ put one at the start of the next line to continue the pipeline:
 a b c
 >>> | wc -w
 3
+```
+
+If you need to write an _ad hoc_ function in the middle of the pipeline
+before continuing processing, you can do that:
+
+```python
+>>> def triple(x):
+...   # Doesn't use int() to convert its argument.
+...   return x * 3
+...
+>>> echo a b c | wc -w
+3
+>>> f = lambda line: int(line[0])
+>>> | f(_)
+>>> | triple(_)
+9
 ```
 
 Similarly, you can also change directories in the middle of a pipeline (see
@@ -475,6 +492,74 @@ you are in your home directory) plus the name of the current `git` branch
 This is all extremely simplistic and for now is just an example. It would
 make sense to port a more sophisticated prompt package from a shell to
 Python and incorporate that.
+
+<a id="more-usage"></a>
+## More on usage
+
+As you've seen, you can simply invoke `daudin` with no arguments and it
+will start an interactive read-eval-print loop, reading from standard
+input.
+
+You can also write scripts and run them by giving the script filename(s) on
+the command line:
+
+```sh
+$ cat daudin-script
+#!/usr/bin/env daudin
+
+def triple(x):
+    return int(x) * 3
+
+echo a b c d | wc -w | triple(_[0])
+
+$ daudin daudin-script
+12
+```
+
+You can provide several script filenames on the command line and they will
+be run in turn. If you give a filename of `-` it will cause `daudin` to
+read from standard input. Note that if you provide filenames, input piped
+into `daudin` will be ignored (to read standard input, use a `-` as just
+mentioned).
+
+Finally, you can pipe commands into `daudin`:
+
+```sh
+$ echo 33 + 34 | daudin
+77
+```
+
+### Command-line options
+
+`daudin` understands the following command-line options (run `daudin
+--help` to see this):
+
+    usage: daudin [-h] [--ps1 PS1] [--ps2 PS2] [--shell SHELL] [--noInit]
+                  [--noPtys] [--debug] [--tracebacks]
+                  [FILE [FILE ...]]
+
+    A Python shell.
+
+    positional arguments:
+      FILE           A file of commands to run non-interactively. Use "-" to
+                     indicate reading from standard input.
+
+    optional arguments:
+      -h, --help     show this help message and exit
+      --ps1 PS1      The primary shell prompt. Note that this value will be
+                     ignored if the user's init file (if any) sets sys.ps1.
+      --ps2 PS2      The secondary shell prompt. Note that this value will be
+                     ignored if the user's init file (if any) sets sys.ps2.
+      --shell SHELL  The shell executable (and its initial argument(s)) that
+                     should be used to execute UNIX commands. Default is
+                     "$DAUDIN_SHELL" if DAUDIN_SHELL is set in your environment,
+                     else "$SHELL -c" if SHELL is set in your environment, else
+                     "/bin/sh -c".
+      --noInit       Do not load the ~/.daudin.py start-up file.
+      --noPtys       Do not run any shell commands in pseudo-ttys.
+      --debug        Start in debug mode.
+      --tracebacks   Print exception tracebacks (implies --debug).
+
 
 <a id="exiting"></a>
 ## Exiting daudin

@@ -1,7 +1,8 @@
 import sys
 from unittest import TestCase
+from io import StringIO
 
-from daudinlib.interaction import REPL
+from daudinlib.interaction import REPL, Batch
 from daudinlib.pipeline import Pipeline
 
 
@@ -227,8 +228,8 @@ class TestREPL(TestCase):
         self.assertEqual(REPL.DEFAULT_PS1, repl.prompt)
 
 
-class TestREADME(TestCase):
-    """Test the examples from the README."""
+class TestInteractiveREADME(TestCase):
+    """Test some examples from the README when entered interactively."""
     def setup_method(self, method):
         try:
             del sys.ps1
@@ -250,7 +251,7 @@ class TestREADME(TestCase):
         repl.runCommandLine('def area(r):')
         self.assertEqual(REPL.DEFAULT_PS2, repl.prompt)
 
-        repl.runCommandLine('  return r ** 2 * pi')
+        repl.runCommandLine('    return r ** 2 * pi')
         self.assertEqual(REPL.DEFAULT_PS2, repl.prompt)
 
         repl.runCommandLine('')
@@ -268,7 +269,7 @@ class TestREADME(TestCase):
         repl.runCommandLine('def triple(x):')
         self.assertEqual(REPL.DEFAULT_PS2, repl.prompt)
 
-        repl.runCommandLine('  return int(x) * 3')
+        repl.runCommandLine('    return int(x) * 3')
         self.assertEqual(REPL.DEFAULT_PS2, repl.prompt)
 
         repl.runCommandLine('')
@@ -286,7 +287,7 @@ class TestREADME(TestCase):
         repl.runCommandLine('def triple(x):')
         self.assertEqual(REPL.DEFAULT_PS2, repl.prompt)
 
-        repl.runCommandLine('  return int(x) * 3')
+        repl.runCommandLine('    return int(x) * 3')
         self.assertEqual(REPL.DEFAULT_PS2, repl.prompt)
 
         repl.runCommandLine('')
@@ -310,7 +311,7 @@ class TestREADME(TestCase):
         repl.runCommandLine('def triple(x):')
         self.assertEqual(REPL.DEFAULT_PS2, repl.prompt)
 
-        repl.runCommandLine('  return int(x) * 3')
+        repl.runCommandLine('    return int(x) * 3')
         self.assertEqual(REPL.DEFAULT_PS2, repl.prompt)
 
         repl.runCommandLine('')
@@ -361,3 +362,118 @@ class TestREADME(TestCase):
         self.assertEqual(['hello too'], pl.stdin)
 
         self.assertEqual(REPL.DEFAULT_PS1, repl.prompt)
+
+
+class TestBatch(TestCase):
+    """Test the Batch class."""
+
+    def testAttributes(self):
+        """
+        A Batch instance must have the expected attributes.
+        """
+        pl = Pipeline(loadInitFile=False)
+        batch = Batch(pl)
+        self.assertIs(pl, batch.pipeline)
+
+    def testAddUnderscoreVar(self):
+        """
+        We should be able to add to the _ variable even when not in
+        a pipeline.
+        """
+        commands = StringIO('7\n_ + 10\n')
+        out = StringIO()
+        pl = Pipeline(loadInitFile=False, outfp=out)
+        Batch(pl).run(commands)
+        self.assertEqual('7\n17\n', out.getvalue())
+
+    def testEchoPipedToWc(self):
+        commands = StringIO('echo a b c | wc -w')
+        out = StringIO()
+        pl = Pipeline(loadInitFile=False, outfp=out, usePtys=False)
+        Batch(pl).run(commands)
+        self.assertEqual('3\n', out.getvalue())
+
+
+class TestBatchREADME(TestCase):
+    """Test some examples from the README when run non-interactively."""
+
+    def testAreaFunction(self):
+        """Define an area function and call it."""
+        commands = StringIO('''
+from math import pi
+def area(r):
+    return r ** 2 * pi
+
+area(2.0)
+''')
+        out = StringIO()
+        pl = Pipeline(loadInitFile=False, outfp=out)
+        Batch(pl).run(commands)
+        self.assertTrue(out.getvalue().startswith('12.56637'))
+
+    def testTripleFunction(self):
+        commands = StringIO('''
+def triple(x):
+    return int(x) * 3
+
+echo a b c | wc -w | triple(_[0])
+''')
+        out = StringIO()
+        pl = Pipeline(loadInitFile=False, outfp=out)
+        Batch(pl).run(commands)
+        self.assertEqual('9\n', out.getvalue())
+
+    def testTripleFunctionWithLinebreaks(self):
+        commands = StringIO('''
+def triple(x):
+    return int(x) * 3
+
+echo a b c
+| wc -w |
+triple(_[0])
+''')
+        out = StringIO()
+        pl = Pipeline(loadInitFile=False, outfp=out, usePtys=False)
+        Batch(pl).run(commands)
+        self.assertEqual('a b c\n9\n', out.getvalue())
+
+    def testTripleFunctionWithIntermediateCleanup(self):
+        commands = StringIO('''
+def triple(x):
+    return x * 3
+
+echo a b c | wc -w
+
+# Write a little function to convert the first line of _ to an int.
+f = lambda line: int(line[0])
+
+| f(_) | triple(_)
+''')
+        out = StringIO()
+        pl = Pipeline(loadInitFile=False, outfp=out, usePtys=False)
+        Batch(pl).run(commands)
+        self.assertEqual('3\n9\n', out.getvalue())
+
+    def testAbsArithmetic(self):
+        commands = StringIO('-6 | abs(_) | _ * 7')
+        out = StringIO()
+        pl = Pipeline(loadInitFile=False, outfp=out)
+        Batch(pl).run(commands)
+        self.assertEqual('42\n', out.getvalue())
+
+    def testInterpretingSection(self):
+        """
+        Test the commands carried out in the 'How commands are interpreted'
+        section.
+        """
+        commands = StringIO('''
+4
+_
+[3, 6, 9]
+print('hello')
+echo hello too
+''')
+        out = StringIO()
+        pl = Pipeline(loadInitFile=False, outfp=out)
+        Batch(pl).run(commands)
+        self.assertEqual('4\n4\n[3, 6, 9]\nhello\n', out.getvalue())

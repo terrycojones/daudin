@@ -1,3 +1,11 @@
+`0.0.16` Saturday Oct 19, 2019
+
+Added non-interactive processing allowing scripts to be written for
+`daudin` (with support for `#!/usr/bin/env daudin` hashbang lines). Add
+reading from standard in via a regular shell pipe. Added some tests for
+the new non-interactive processing.  Added `--noPtys` command-line option
+to prevent pseudo-ttys from ever being used. Added to README.md.
+
 `0.0.15` Saturday Oct 19, 2019
 
 Added example function for setting a colored prompt showing the current
