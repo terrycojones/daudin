@@ -90,7 +90,7 @@ But in fact it's Python all the way down:
 Shell pipelines are super cool. As you've seen above `daudin`, has
 pipelines that look just like the shell. But there are a few added extras.
 
-Firstly, you can mix Python and the shell in a `daudin` pipeline:
+You can mix Python and the shell in a `daudin` pipeline:
 
 ```
 >>> import this | grep 'better than'
@@ -130,7 +130,8 @@ UNIX commands produce lists of strings in `_`:
 4 TEST
 ```
 
-So you need to use `_[0]` if you just want the first line of output:
+That means you should use `_[0]` if you want to act on just the first line
+of UNIX command output:
 
 ```python
 >>> def triple(x):
@@ -198,8 +199,8 @@ a b c
 3
 ```
 
-If you need to write an _ad hoc_ function in the middle of the pipeline
-before continuing processing, you can do that:
+If you need to write a helper function in the middle of the pipeline before
+continuing processing, you can do it:
 
 ```python
 >>> def triple(x):
@@ -209,12 +210,11 @@ before continuing processing, you can do that:
 >>> echo a b c | wc -w
 3
 >>> f = lambda line: int(line[0])
->>> | f(_)
->>> | triple(_)
+>>> | f(_) | triple(_)
 9
 ```
 
-Similarly, you can also change directories in the middle of a pipeline (see
+Similarly, you can change directories in the middle of a pipeline (see
 <a href="#cd">Changing directory</a> below).
 
 You can put comments into the middle of a pipeline
@@ -271,26 +271,8 @@ immediately continued using a leading `|`:
 17 EXAMPLE-FUNCTIONS
 ```
 
-Here's another example where two `|` symbols are needed to terminate the
-Python. In the following, the Python command is terminated by an extra
-empty command (on the line whose prompt is `...`):
-
-```python
->>> ls | for i in _: print(i[:3])
-...
-CHA
-LIC
-Mak
-REA
-dau
-dau
-exa
-set
-tes
-```
-
-As in the previous example, to pipe the compound Python command output
-directly into another command, use two pipe symbols:
+Here's another example where two `|` symbols can be used to terminate the
+Python command in order to continue the pipeline on a single line:
 
 ```python
 >>> ls | for i in _: print(i[:3]) | | wc -l
@@ -298,10 +280,11 @@ directly into another command, use two pipe symbols:
 ```
 
 The above could instead be piped into the
-[sus](https://github.com/terrycojones/daudin/blob/master/example-functions.py#L18)
+[sus](https://github.com/terrycojones/daudin/blob/master/example-functions.py#L40)
 function I have in my `~/.daudin.py` file (see <a href="#init-file">Init
-file</a> for details on this).  The `sus` Python function does the typical
-shell `sort | uniq -c | sort -nr` trick for finding the most common inputs:
+file</a> for details on this).  The `sus` Python function does the
+equivalent of the shell `sort | uniq -c | sort -nr` trick for finding the
+most common inputs:
 
 ```python
 >>> ls | for i in _: print(i[:3]) | | sus()
@@ -316,9 +299,9 @@ shell `sort | uniq -c | sort -nr` trick for finding the most common inputs:
 1 tes
 ```
 
-As above, the `||` is needed in order to provide an empty command (the
-zero-length string between the pipe symbols) to terminate the Python `for`
-block. The space between the pipe symbol is optional.
+Just to repeat: the `||` provides an empty command (the zero-length string
+between the pipe symbols) to terminate the Python `for` block. The space
+between the two pipe symbols is optional.
 
 ### Undo in a pipeline
 
