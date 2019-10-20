@@ -494,7 +494,9 @@ def triple(x):
     return int(x) * 3
 
 echo a b c d | wc -w | triple(_[0])
+```
 
+```sh
 $ daudin daudin-script
 12
 ```
