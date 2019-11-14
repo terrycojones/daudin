@@ -1,3 +1,10 @@
+`0.0.17` Thursday Nov 14, 2019
+
+Ignore control-c. Ignore non UTF-8 output from UNIX commands (e.g., the
+output from running vi). The `UnicodeDecodeError` exception raised in this
+case can still be seen when debugging is on (use the `%d` command to toggle
+debug output and `%t` to see the traceback).
+
 `0.0.16` Saturday Oct 19, 2019
 
 Added non-interactive processing allowing scripts to be written for

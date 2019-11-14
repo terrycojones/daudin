@@ -391,7 +391,23 @@ class Pipeline:
 
         # TODO: Check all this still needed.
         # print('Shell result %r' % (result,), file=self.errfp)
-        return ANSI_esc.sub('', result.decode('utf-8')).replace('\r\n', '\n')
+        try:
+            result = result.decode('utf-8')
+        except UnicodeDecodeError as e:
+            # The command produced bytes that we couldn't decode from
+            # UTF-8.  Probably we could be smarter about this, but for now
+            # let's just make it look like the command didn't return
+            # anything. Another option would be to just return the raw
+            # bytes. An example of a command that writes non-UTF8 output is
+            # vi on Linux (Ubuntu 19.10). Suggestions welcome!
+            self._debug('Ignoring non UTF-8 output from command: %s.' % e)
+            if self.printTracebacks:
+                self._debug(traceback.format_exc())
+            result = ''
+        else:
+            result = ANSI_esc.sub('', result).replace('\r\n', '\n')
+
+        return result
 
     def cd(self, dest):
         os.chdir(dest)

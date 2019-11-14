@@ -4,6 +4,7 @@ import sys
 import traceback
 import shlex
 from os.path import expanduser
+import signal
 
 from daudinlib.parse import lineSplitter
 from daudinlib.pipeline import Pipeline
@@ -131,8 +132,11 @@ class REPL(_DaudinBase):
                 yield text
 
     def run(self):
+        oldHandler = signal.getsignal(signal.SIGINT)
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
         for commandLine in self._readStdin():
             self.runCommandLine(commandLine)
+        signal.signal(signal.SIGINT, oldHandler)
 
     def runCommand(self, command, commandNumber=1, nCommands=1):
         pipeline = self.pipeline
