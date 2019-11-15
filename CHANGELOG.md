@@ -1,3 +1,8 @@
+`0.0.19` Friday Nov 15, 2019
+
+The `cd` method now has a default `dest`, as it should've all along. Use
+`os.path.expanduser` to allow `~` at the start of the given path.
+
 `0.0.18` Friday Nov 15, 2019
 
 Fixed too-simplistic handling of control-c. Now install a signal handler
