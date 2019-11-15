@@ -1,3 +1,9 @@
+`0.0.18` Friday Nov 15, 2019
+
+Fixed too-simplistic handling of control-c. Now install a signal handler
+that sends a SIGINT to the pseudotty subprocess. A similar thing should be
+done for subprocesses not run in pseudottys.
+
 `0.0.17` Thursday Nov 14, 2019
 
 Ignore control-c. Ignore non UTF-8 output from UNIX commands (e.g., the

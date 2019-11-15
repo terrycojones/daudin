@@ -5,6 +5,7 @@ import select
 import termios
 import tty
 import pty
+import signal
 from code import compile_command
 from io import StringIO, TextIOWrapper
 from contextlib import contextmanager
@@ -333,9 +334,11 @@ class Pipeline:
         # run-interactive-bash-with-popen-and-a-dedicated-tty-python
         # Answer by https://stackoverflow.com/users/3555925/liao
 
-        # save original tty setting then set it to raw mode
+        # Save original tty setting then set it to raw mode and save old
+        # SIGINT handler.
         if stdinIsTty:
             oldTty = termios.tcgetattr(sys.stdin)
+            oldHandler = signal.getsignal(signal.SIGINT)
 
         try:
             if stdinIsTty:
@@ -356,6 +359,12 @@ class Pipeline:
                 stdin=(slave_fd if stdin is None else PIPE), stdout=slave_fd,
                 stderr=slave_fd, universal_newlines=True, **kwargs)
 
+            if stdinIsTty:
+                def handle():
+                    process.send_signal(signal.SIGINT)
+
+                signal.signal(signal.SIGINT, handle)
+
             # Write the command's stdin to it, if any.
             if stdin is not None:
                 # print('WROTE %r' % (stdin,), file=self.errfp)
@@ -373,10 +382,7 @@ class Pipeline:
                 if sys.stdin in r:
                     data = os.read(sys.stdin.fileno(), 10240)
                     # print('READ from stdin %r' % (data,), file=self.errfp)
-                    if data == b'\x03':
-                        process.terminate()
-                    else:
-                        os.write(master_fd, data)
+                    os.write(master_fd, data)
                 elif master_fd in r:
                     data = os.read(master_fd, 10240)
                     # print('READ from master %r' % (data,), file=self.errfp)
@@ -386,8 +392,9 @@ class Pipeline:
 
         finally:
             if stdinIsTty:
-                # Restore tty settings.
+                # Restore tty settings and SIGINT handler.
                 termios.tcsetattr(sys.stdin, termios.TCSADRAIN, oldTty)
+                signal.signal(signal.SIGINT, oldHandler)
 
         # TODO: Check all this still needed.
         # print('Shell result %r' % (result,), file=self.errfp)
